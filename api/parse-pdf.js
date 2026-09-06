@@ -39,7 +39,6 @@ Metin:
 ${pdfText}
     `;
 
-    // Güncel Gemini 3.6 Flash API İsteği
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
