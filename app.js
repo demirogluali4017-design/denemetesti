@@ -2,7 +2,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 let selectedFile = null;
 let currentQuestions = [];
-let detectedLanguage = "Türkçe / Fransızca";
+let detectedLanguage = "Fransızca";
 let currentQuestionIndex = 0;
 let userAnswers = {};
 let timeSpentPerQuestion = {};
@@ -40,7 +40,7 @@ async function startAnalysis() {
 
   document.getElementById("uploadScreen").classList.add("hidden");
   document.getElementById("loadingScreen").classList.remove("hidden");
-  document.getElementById("loadingText").textContent = "PDF Okunuyor ve Yapay Zeka Kategorilerine Ayırıyor...";
+  document.getElementById("loadingText").textContent = "PDF Okunuyor ve Yapay Zeka Soru Tiplerini Ayrıştırıyor...";
 
   try {
     const pdfText = await extractTextFromPDF(selectedFile);
@@ -62,7 +62,6 @@ async function startAnalysis() {
 
     document.getElementById("loadingScreen").classList.add("hidden");
     
-    // BAŞLAMADAN ÖNCE EKRANINI DOLDUR VE GÖSTER
     document.getElementById("detectedLangTag").textContent = detectedLanguage;
     document.getElementById("totalQuestionsTag").textContent = currentQuestions.length;
     document.getElementById("recommendedTimeTag").textContent = Math.round(currentQuestions.length * 1.8);
@@ -128,7 +127,6 @@ function renderQuestion() {
 
   const q = currentQuestions[currentQuestionIndex];
   document.getElementById("questionCounter").textContent = `Soru ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
-  
   document.getElementById("questionTypeTag").textContent = q.type || "Gramer / Dilbilgisi";
 
   if (q.passage) {
@@ -234,17 +232,9 @@ function finishQuiz() {
   const chartContainer = document.getElementById("typeAnalysisChart");
   chartContainer.innerHTML = "";
 
-  let slowestType = "";
-  let maxAvgTime = 0;
-
   for (const [type, stat] of Object.entries(typeStats)) {
     const avgSec = Math.round(stat.totalTime / stat.total);
     const successRate = Math.round((stat.correct / stat.total) * 100);
-
-    if (avgSec > maxAvgTime) {
-      maxAvgTime = avgSec;
-      slowestType = type;
-    }
 
     const card = document.createElement("div");
     card.className = "chart-card";
@@ -263,15 +253,10 @@ function finishQuiz() {
     `;
     chartContainer.appendChild(card);
   }
-
-  document.getElementById("analysisAdviceText").innerHTML = `
-    <strong>Sınav Dili:</strong> Bu sınav yapay zeka tarafından <strong>${detectedLanguage}</strong> olarak tespit edilmiştir ve analizler bu dile özel olarak oluşturulmuştur.<br><br>
-    En çok zaman harcadığınız bölüm: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye).
-  `;
 }
 
-// YANLIŞ SORULARI YAPAY ZEKA İLE ANALİZ ETME
-async function analyzeWrongQuestionsWithAI() {
+// YENİ SAYFAYA GEÇİŞ: YANLIŞLARI ANALİZ ET VE YENİ EKRANDA GÖSTER
+async function analyzeAndGoToWrongScreen() {
   const wrongQuestions = [];
 
   currentQuestions.forEach((q, idx) => {
@@ -294,7 +279,7 @@ async function analyzeWrongQuestionsWithAI() {
 
   document.getElementById("resultScreen").classList.add("hidden");
   document.getElementById("loadingScreen").classList.remove("hidden");
-  document.getElementById("loadingText").textContent = "Yapay Zeka Yanlış Cevaplarınızı Analiz Ediyor ve Çözüm Taktikleri Hazırlıyor...";
+  document.getElementById("loadingText").textContent = "Yapay Zeka Yanlışlarınızı Analiz Edip Çözüm Taktikleri Hazırlıyor...";
 
   try {
     const response = await fetch("/api/analyze-wrongs", {
@@ -306,35 +291,51 @@ async function analyzeWrongQuestionsWithAI() {
     const data = await response.json();
 
     document.getElementById("loadingScreen").classList.add("hidden");
-    document.getElementById("resultScreen").classList.remove("hidden");
+    document.getElementById("wrongAnalysisScreen").classList.remove("hidden");
 
-    const resultBox = document.getElementById("wrongAnalysisResult");
-    resultBox.classList.remove("hidden");
-    
-    let htmlContent = `<h3>🧠 Yapay Zeka Hata ve Çözüm Analizi (${detectedLanguage})</h3><br>`;
-    
+    const container = document.getElementById("wrongQuestionsList");
+    container.innerHTML = "";
+
     if (data.analysis && Array.isArray(data.analysis)) {
-      data.analysis.forEach(item => {
-        htmlContent += `
-          <div class="wrong-item">
-            <p><strong>Soru ${item.qNumber} (${item.type}):</strong></p>
-            <p style="color:#dc2626;">Sizin Cevabınız: ${item.userAnswer}</p>
-            <p style="color:#16a34a;">Doğru Cevap: ${item.correctAnswer}</p>
-            <p style="margin-top:0.4rem;"><strong>Neden Hatalı & Çözüm İpucu:</strong> ${item.explanation}</p>
+      data.analysis.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "wrong-card";
+        card.innerHTML = `
+          <div class="wrong-card-header">
+            <span class="wrong-q-number">Soru ${item.qNumber}</span>
+            <span class="wrong-q-type">${item.type}</span>
+          </div>
+          <p class="wrong-q-text">${item.question || 'Soru metni'}</p>
+
+          <div class="wrong-answers-comparison">
+            <div class="ans-box user">❌ Sizin Cevabınız: ${item.userAnswer}</div>
+            <div class="ans-box correct">✅ Doğru Cevap: ${item.correctAnswer}</div>
+          </div>
+
+          <div class="ai-reason-box">
+            <strong>🔍 Neden Yanlış ve Neden Doğru Cevap Bu?</strong><br>
+            ${item.reason}
+          </div>
+
+          <div class="ai-tactic-box">
+            <strong>💡 Soru Tipi Çözüm Taktiği:</strong><br>
+            ${item.tactic}
           </div>
         `;
+        container.appendChild(card);
       });
-    } else {
-      htmlContent += `<p>${data.rawAnalysis || 'Analiz tamamlandı.'}</p>`;
     }
-
-    resultBox.innerHTML = htmlContent;
 
   } catch (error) {
     alert("Analiz hatası: " + error.message);
     document.getElementById("loadingScreen").classList.add("hidden");
     document.getElementById("resultScreen").classList.remove("hidden");
   }
+}
+
+function backToResultScreen() {
+  document.getElementById("wrongAnalysisScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
 }
 
 function resetApp() {
@@ -345,6 +346,6 @@ function resetApp() {
   document.getElementById("fileNameDisplay").textContent = "Henüz dosya seçilmedi";
   document.getElementById("startParseBtn").classList.add("hidden");
   document.getElementById("resultScreen").classList.add("hidden");
-  document.getElementById("wrongAnalysisResult").classList.add("hidden");
+  document.getElementById("wrongAnalysisScreen").classList.add("hidden");
   document.getElementById("uploadScreen").classList.remove("hidden");
 }
