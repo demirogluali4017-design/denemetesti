@@ -8,6 +8,60 @@ let questionStartTime = 0;
 
 let timerInterval = null;
 let secondsPassed = 0;
+let progressInterval = null;
+
+const funnyQuotes = [
+  "Çöp adam YDS paragraflarını taşıyor... 📦",
+  "Cloze test şıkları hizalanıyor... 🔍",
+  "Grammar kuralları gözden geçiriliyor... 📚",
+  "Gemini yapay zekası paragrafları inceliyor... 🤖",
+  "Son rötuşlar yapılıyor, az kaldı... 🚀"
+];
+
+function startProgressAnimation() {
+  let percent = 0;
+  const progressBar = document.getElementById("progressBar");
+  const runner = document.getElementById("runner");
+  const percentText = document.getElementById("progressPercent");
+  const quoteText = document.getElementById("funnyQuote");
+
+  progressBar.style.width = "0%";
+  runner.style.left = "0%";
+  percentText.textContent = "%0";
+
+  clearInterval(progressInterval);
+  
+  progressInterval = setInterval(() => {
+    if (percent < 92) {
+      percent += Math.floor(Math.random() * 4) + 1;
+      if (percent > 92) percent = 92;
+
+      progressBar.style.width = percent + "%";
+      runner.style.left = percent + "%";
+      percentText.textContent = `%${percent}`;
+
+      const quoteIndex = Math.floor((percent / 100) * funnyQuotes.length);
+      if (funnyQuotes[quoteIndex]) {
+        quoteText.textContent = funnyQuotes[quoteIndex];
+      }
+    }
+  }, 400);
+}
+
+function completeProgressAnimation(callback) {
+  clearInterval(progressInterval);
+  const progressBar = document.getElementById("progressBar");
+  const runner = document.getElementById("runner");
+  const percentText = document.getElementById("progressPercent");
+
+  progressBar.style.width = "100%";
+  runner.style.left = "100%";
+  percentText.textContent = "%100";
+
+  setTimeout(() => {
+    if (callback) callback();
+  }, 600);
+}
 
 async function handlePDFUpload(event) {
   const file = event.target.files[0];
@@ -15,6 +69,8 @@ async function handlePDFUpload(event) {
 
   document.getElementById("pdfStatus").textContent = `Yüklenen: ${file.name}`;
   document.getElementById("loadingBox").classList.remove("hidden");
+
+  startProgressAnimation();
 
   try {
     const extractedText = await extractTextFromPDF(file);
@@ -26,22 +82,27 @@ async function handlePDFUpload(event) {
     });
 
     const data = await response.json();
-    document.getElementById("loadingBox").classList.add("hidden");
 
     if (data.questions && data.questions.length > 0) {
-      currentQuestions = data.questions;
-      userAnswers = {};
-      timeSpentPerQuestion = {};
-      
-      document.getElementById("uploadScreen").classList.add("hidden");
-      document.getElementById("startConfirmScreen").classList.remove("hidden");
-      document.getElementById("readyQuestionsCount").textContent = `Toplam ${currentQuestions.length} YDS sorusu başarıyla hazırlandı.`;
+      completeProgressAnimation(() => {
+        document.getElementById("loadingBox").classList.add("hidden");
+        currentQuestions = data.questions;
+        userAnswers = {};
+        timeSpentPerQuestion = {};
+        
+        document.getElementById("uploadScreen").classList.add("hidden");
+        document.getElementById("startConfirmScreen").classList.remove("hidden");
+        document.getElementById("readyQuestionsCount").textContent = `Toplam ${currentQuestions.length} YDS sorusu başarıyla hazırlandı.`;
+      });
     } else {
+      clearInterval(progressInterval);
+      document.getElementById("loadingBox").classList.add("hidden");
       alert("Hata: " + (data.error || "Soru çıkarılamadı."));
     }
 
   } catch (error) {
     console.error(error);
+    clearInterval(progressInterval);
     document.getElementById("loadingBox").classList.add("hidden");
     alert("PDF işlenirken bir sunucu hatası oluştu.");
   }
@@ -107,6 +168,14 @@ function displayQuestion() {
     passageTextElement.textContent = "";
   }
 
+  // Seçimi Temizle Butonunu Göster/Gizle
+  const clearBtn = document.getElementById("clearAnswerBtn");
+  if (userAnswers[currentIndex]) {
+    clearBtn.classList.remove("hidden");
+  } else {
+    clearBtn.classList.add("hidden");
+  }
+
   // Şıkların Hazırlanması
   const container = document.getElementById("optionsContainer");
   container.innerHTML = "";
@@ -134,8 +203,20 @@ function displayQuestion() {
 }
 
 function selectOption(letter) {
-  userAnswers[currentIndex] = letter;
+  // Eğer zaten seçili olan şıkka tekrar tıklanırsa seçimi kaldır (Boş bırak)
+  if (userAnswers[currentIndex] === letter) {
+    delete userAnswers[currentIndex];
+  } else {
+    userAnswers[currentIndex] = letter;
+  }
   displayQuestion();
+}
+
+function clearAnswer() {
+  if (userAnswers[currentIndex]) {
+    delete userAnswers[currentIndex];
+    displayQuestion();
+  }
 }
 
 function prevQuestion() {
@@ -160,22 +241,31 @@ function finishQuiz() {
   document.getElementById("resultScreen").classList.remove("hidden");
 
   let correctCount = 0;
+  let emptyCount = 0;
+  let wrongCount = 0;
   const typeStats = {}; 
 
   currentQuestions.forEach((q, idx) => {
     const type = q.type || "Genel Gramer";
     const timeSpent = timeSpentPerQuestion[idx] || 0;
+    const userAnswer = userAnswers[idx];
 
     if (!typeStats[type]) {
-      typeStats[type] = { total: 0, correct: 0, totalTime: 0 };
+      typeStats[type] = { total: 0, correct: 0, wrong: 0, empty: 0, totalTime: 0 };
     }
 
     typeStats[type].total++;
     typeStats[type].totalTime += timeSpent;
 
-    if (userAnswers[idx] === q.correct) {
+    if (!userAnswer) {
+      emptyCount++;
+      typeStats[type].empty++;
+    } else if (userAnswer === q.correct) {
       correctCount++;
       typeStats[type].correct++;
+    } else {
+      wrongCount++;
+      typeStats[type].wrong++;
     }
   });
 
@@ -185,6 +275,7 @@ function finishQuiz() {
   
   document.getElementById("ydsScoreText").textContent = ydsScore;
   document.getElementById("scoreText").textContent = `${correctCount} / ${totalCount}`;
+  document.getElementById("emptyText").textContent = emptyCount;
   
   const mins = String(Math.floor(secondsPassed / 60)).padStart(2, '0');
   const secs = String(secondsPassed % 60).padStart(2, '0');
@@ -217,7 +308,7 @@ function finishQuiz() {
     tr.innerHTML = `
       <td><strong>${type}</strong></td>
       <td>${stat.total}</td>
-      <td>${stat.correct} / ${stat.total}</td>
+      <td><span style="color:#16a34a">${stat.correct}D</span> / <span style="color:#dc2626">${stat.wrong}Y</span> / <span style="color:#64748b">${stat.empty}B</span></td>
       <td>${avgSec} sn / soru</td>
     `;
     tableBody.appendChild(tr);
@@ -226,12 +317,14 @@ function finishQuiz() {
   // AI Tavsiye Metni
   document.getElementById("analysisAdviceText").innerHTML = `
     En çok zaman harcadığınız soru tipi: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye). <br><br>
-    YDS'de zaman yönetimi kritik önem taşır. Soru başına ortalama 1.5 - 2 dakikayı aşmamaya özen göstermelisiniz. ${ydsScore < 70 ? 'Özellikle yanlış yaptığınız soru gruplarının çözüm taktiklerini tekrar incelemeniz ve günlük okuma pratiği yapmanız önerilir.' : 'Tebrikler! Yüksek başarı oranına sahipsiniz, hızınızı ve soru taktiklerinizi koruyun.'}
+    Sınavda <strong>${emptyCount} adet soru boş bırakıldı</strong>. YDS'de yanlışlar doğruları götürmediği için emin olmasanız dahi tüm soruları işaretlemek puanınızı artırabilir.<br><br>
+    ${ydsScore < 70 ? 'Özellikle yanlış yaptığınız soru gruplarının çözüm taktiklerini tekrar incelemeniz ve günlük okuma pratiği yapmanız önerilir.' : 'Tebrikler! Yüksek başarı oranına sahipsiniz, hızınızı ve soru taktiklerinizi koruyun.'}
   `;
 }
 
 function resetApp() {
   clearInterval(timerInterval);
+  clearInterval(progressInterval);
   currentQuestions = [];
   currentIndex = 0;
   userAnswers = {};
