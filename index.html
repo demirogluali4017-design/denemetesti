@@ -26,9 +26,20 @@
         <p id="pdfStatus" class="status-text">Henüz dosya seçilmedi</p>
       </div>
 
+      <!-- EĞLENCELİ YÜKLEME EKRANI -->
       <div id="loadingBox" class="loading hidden">
-        <div class="spinner"></div>
-        <p>PDF metni analiz ediliyor ve YDS soruları çıkarılıyor, lütfen bekleyin...</p>
+        <p class="loading-title">YDS Soruları Yapay Zeka Tarafından Çıkarılıyor...</p>
+
+        <!-- Koşan Adam & İlerleme Alanı -->
+        <div class="progress-wrapper">
+          <div id="runner" class="runner">🏃💨</div>
+          <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+          <span id="progressPercent" class="percent-text">%0</span>
+        </div>
+
+        <p id="funnyQuote" class="funny-quote">Çöp adam YDS paragraflarını taşıyor...</p>
       </div>
     </section>
 
@@ -40,7 +51,7 @@
       <button onclick="startQuiz()" class="btn-primary">Sınava Başla</button>
     </section>
 
-    <!-- 3. TEST ÇÖZME EKRANI (PARAGRAF & CLOZE TEST DESTEKLİ) -->
+    <!-- 3. TEST ÇÖZME EKRANI -->
     <section id="quizScreen" class="card hidden">
       <div class="quiz-header">
         <span id="questionCounter">Soru: 1/80</span>
@@ -55,7 +66,10 @@
       </div>
 
       <div class="question-container">
-        <span id="questionTypeTag" class="type-badge">Soru Tipi</span>
+        <div class="question-meta">
+          <span id="questionTypeTag" class="type-badge">Soru Tipi</span>
+          <button id="clearAnswerBtn" onclick="clearAnswer()" class="btn-clear hidden">🗑️ Seçimi Temizle (Boş Bırak)</button>
+        </div>
         <p id="questionText" class="question-box"></p>
         <div id="optionsContainer" class="options-grid"></div>
       </div>
@@ -84,6 +98,10 @@
           <p>Doğru / Toplam</p>
         </div>
         <div class="score-card">
+          <span id="emptyText">0</span>
+          <p>Boş Soru</p>
+        </div>
+        <div class="score-card">
           <span id="totalTimeText">00:00</span>
           <p>Toplam Süre</p>
         </div>
@@ -96,8 +114,8 @@
           <thead>
             <tr>
               <th>Soru Tipi</th>
-              <th>Soru</th>
-              <th>Doğru</th>
+              <th>Toplam</th>
+              <th>Doğru / Yanlış / Boş</th>
               <th>Ort. Süre / Soru</th>
             </tr>
           </thead>
