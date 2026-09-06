@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI PDF Test & Analiz Platformu</title>
   <link rel="stylesheet" href="style.css">
-  <!-- PDF.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
@@ -19,7 +18,7 @@
     <!-- 1. PDF YÜKLEME EKRANI -->
     <section id="uploadScreen" class="card">
       <h2>PDF Test Belgenizi Yükleyin</h2>
-      <p>Soru içeren PDF belgenizi seçin. Yapay Zeka sorularınızı saniyeler içinde çözülebilir teste dönüştürecektir.</p>
+      <p>Soru içeren PDF belgenizi seçin. Yapay zeka belgenizdeki tüm soruları teste dönüştürecektir.</p>
       
       <div class="upload-box">
         <input type="file" id="pdfFileInput" accept="application/pdf" onchange="handlePDFUpload(event)" hidden>
@@ -29,47 +28,66 @@
 
       <div id="loadingBox" class="loading hidden">
         <div class="spinner"></div>
-        <p>PDF metni okunuyor ve Gemini AI soruları hazırlıyor, lütfen bekleyin...</p>
+        <p>PDF metni okunuyor ve tüm sorular hazırlanıyor, lütfen bekleyin...</p>
       </div>
     </section>
 
-    <!-- 2. TEST ÇÖZME EKRANI -->
+    <!-- 2. BAŞLANGIÇ ONAY EKRANI -->
+    <section id="startConfirmScreen" class="card hidden">
+      <h2>Testiniz Hazır! 🚀</h2>
+      <p id="readyQuestionsCount">Toplam 0 soru tespit edildi.</p>
+      <p>Testi başlattığınızda süre sayacı devreye girecektir.</p>
+      <button onclick="startQuiz()" class="btn-primary">Başlıyoruz (Testi Başlat)</button>
+    </section>
+
+    <!-- 3. TEST ÇÖZME EKRANI -->
     <section id="quizScreen" class="card hidden">
       <div class="quiz-header">
         <span id="questionCounter">Soru: 1/1</span>
-        <button onclick="resetApp()" class="btn-secondary btn-sm">İptal Et / Yeni PDF</button>
+        <div class="timer-badge">⏱️ <span id="timerText">00:00</span></div>
+        <button onclick="resetApp()" class="btn-secondary btn-sm">Çıkış</button>
       </div>
 
       <div class="question-container">
+        <p id="questionTopic" class="topic-tag"></p>
         <p id="questionText" class="question-box"></p>
         <div id="optionsContainer" class="options-grid"></div>
       </div>
 
-      <div id="feedbackBox" class="feedback hidden"></div>
-
       <div class="actions">
-        <button id="nextBtn" onclick="nextQuestion()" class="btn-primary hidden">Sonraki Soru ➔</button>
+        <button id="prevBtn" onclick="prevQuestion()" class="btn-secondary">⬅️ Önceki Soru</button>
+        <button id="nextBtn" onclick="nextQuestion()" class="btn-primary">Sonraki Soru ➔</button>
+        <button id="finishBtn" onclick="finishQuiz()" class="btn-success hidden">Testi Bitir 🏁</button>
       </div>
     </section>
 
-    <!-- 3. SONUÇ VE AI ANALİZ EKRANI -->
+    <!-- 4. SONUÇ VE DETAYLI ANALİZ EKRANI -->
     <section id="resultScreen" class="card hidden">
       <h2>🎉 Test Tamamlandı!</h2>
       
       <div class="score-summary">
         <div class="score-card">
           <span id="scoreText">0 / 0</span>
-          <p>Doğru Sayısı</p>
+          <p>Doğru / Toplam</p>
         </div>
         <div class="score-card">
           <span id="percentageText">%0</span>
           <p>Başarı Oranı</p>
         </div>
+        <div class="score-card">
+          <span id="totalTimeText">00:00</span>
+          <p>Toplam Süre</p>
+        </div>
       </div>
 
       <div class="analysis-box">
-        <h3>🤖 Yapay Zeka Performans Analizi</h3>
-        <p id="analysisText">Analiz hazırlanıyor...</p>
+        <h3>📊 Konu / Soru Grubu Analizi</h3>
+        <div id="categoryAnalysisContainer" class="category-list"></div>
+      </div>
+
+      <div class="analysis-box advice-box">
+        <h3>💡 Yapay Zeka Gelişim Tavsiyeleri</h3>
+        <p id="analysisAdviceText">Analiz hazırlanıyor...</p>
       </div>
 
       <button onclick="resetApp()" class="btn-primary" style="margin-top: 1.5rem;">Yeni Test Yükle</button>
