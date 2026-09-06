@@ -11,30 +11,35 @@ export default async function handler(req, res) {
 
   try {
     const { pdfText } = req.body;
+    if (!pdfText || pdfText.trim().length === 0) {
+      return res.status(400).json({ error: 'PDF içeriği boş veya okunamadı.' });
+    }
 
     const prompt = `
-Aşağıdaki metin bir YDS sınav belgesidir. Metindeki TÜM soruları analiz et ve SADECE saf bir JSON dizisi formatında döndür.
+Aşağıdaki metin bir YDS (Yabancı Dil Bilgisi Seviye Tespit Sınavı) belgesidir. 
+TÜM soruları analiz et ve SADECE saf bir JSON dizisi formatında döndür.
 
 JSON Şablonu:
 [
   {
     "type": "Soru Tipi (Örn: Paragraf, Cloze Test, Kelime Bilgisi, Cümle Tamamlama, Çeviri, Paragraf Tamamlama, Anlam Bütünlüğü)",
     "passage": "Eğer soru bir Paragrafa veya Cloze Test metnine bağlıysa, O METNİN TAMAMINI BURAYA EKLE. Bağımsız bir soru ise null yap.",
-    "question": "Soru metni (Cloze test ise boşluk içeren cümle veya soru numarası)",
-    "options": ["A şıkkı", "B şıkkı", "C şıkkı", "D şıkkı", "E şıkkı"],
+    "question": "Soru metni veya numarası",
+    "options": ["A şıkkı metni", "B şıkkı metni", "C şıkkı metni", "D şıkkı metni", "E şıkkı metni"],
     "correct": "A"
   }
 ]
 
 ÇOK ÖNEMLİ KRİTİK KURALLAR:
-1. PARAGRAF VE CLOZE TEST GRUPLARI: Örneğin bir paragraftan 4 soru çıkarılmışsa veya 1 Cloze Test metninden 5 soru çıkarılmışsa, O 4 VEYA 5 SORUNUN HER BİRİNİN "passage" ALANINA AYNI METNİ EKSİKSİZ BİÇİMDE TEKRAR YAZIN. Hiçbirini boş bırakmayın.
-2. Cloze test sorularında okuma parçasını mutlaka "passage" içine koyun.
+1. PARAGRAF VE CLOZE TEST GRUPLARI: Örneğin bir paragraftan 4 soru çıkarılmışsa veya 1 Cloze Test metninden 5 soru çıkarılmışsa, O SORULARIN HER BİRİNİN "passage" ALANINA AYNI METNİ EKSİKSİZ BİÇİMDE TEKRAR YAZIN. Hiçbirini boş bırakmayın.
+2. "correct" alanına doğru cevabın harfini yazın (A, B, C, D veya E).
 3. Yanıtına Markdown kaplaması (\`\`\`json) ekleme, sadece saf JSON döndür.
 
 Metin:
 ${pdfText}
     `;
 
+    // Güncel Gemini 3.6 Flash API İsteği
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
@@ -49,13 +54,19 @@ ${pdfText}
     });
 
     const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: data.error?.message || 'Gemini API hatası.' });
+    }
+
     let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
-    
+    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+
     const questions = JSON.parse(rawText);
     return res.status(200).json({ questions });
 
   } catch (error) {
     console.error("API Hatası:", error);
-    return res.status(500).json({ error: 'Soru analizi sırasında hata oluştu.' });
+    return res.status(500).json({ error: 'Soru analizi sırasında sunucu hatası oluştu.' });
   }
 }
