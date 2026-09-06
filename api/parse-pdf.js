@@ -17,23 +17,11 @@ export default async function handler(req, res) {
 
     const prompt = `
 Aşağıdaki metin bir YDS (Yabancı Dil Bilgisi Seviye Tespit Sınavı) belgesidir. 
-TÜM soruları analiz et ve SADECE saf bir JSON dizisi formatında döndür.
+TÜM soruları eksiksiz analiz et.
 
-JSON Şablonu:
-[
-  {
-    "type": "Soru Tipi (Örn: Paragraf, Cloze Test, Kelime Bilgisi, Cümle Tamamlama, Çeviri, Paragraf Tamamlama, Anlam Bütünlüğü)",
-    "passage": "Eğer soru bir Paragrafa veya Cloze Test metnine bağlıysa, O METNİN TAMAMINI BURAYA EKLE. Bağımsız bir soru ise null yap.",
-    "question": "Soru metni veya numarası",
-    "options": ["A şıkkı metni", "B şıkkı metni", "C şıkkı metni", "D şıkkı metni", "E şıkkı metni"],
-    "correct": "A"
-  }
-]
-
-ÇOK ÖNEMLİ KRİTİK KURALLAR:
-1. PARAGRAF VE CLOZE TEST GRUPLARI: Örneğin bir paragraftan 4 soru çıkarılmışsa veya 1 Cloze Test metninden 5 soru çıkarılmışsa, O SORULARIN HER BİRİNİN "passage" ALANINA AYNI METNİ EKSİKSİZ BİÇİMDE TEKRAR YAZIN. Hiçbirini boş bırakmayın.
-2. "correct" alanına doğru cevabın harfini yazın (A, B, C, D veya E).
-3. Yanıtına Markdown kaplaması (\`\`\`json) ekleme, sadece saf JSON döndür.
+Aşağıdaki kurallara kesinlikle uy:
+1. Paragraf ve Cloze Test metinleri bir grup soruya aitse (örneğin 1-5 veya 35-38 arası), o metni gruba ait HER BİR sorunun "passage" alanına eksiksiz kopyala. Bağımsız sorularda "passage" alanını null yap.
+2. "correct" alanına sorunun doğru şık harfini (A, B, C, D veya E) ekle.
 
 Metin:
 ${pdfText}
@@ -47,7 +35,24 @@ ${pdfText}
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          response_mime_type: "application/json"
+          response_mime_type: "application/json",
+          response_schema: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                type: { type: "STRING" },
+                passage: { type: "STRING", nullable: true },
+                question: { type: "STRING" },
+                options: {
+                  type: "ARRAY",
+                  items: { type: "STRING" }
+                },
+                correct: { type: "STRING" }
+              },
+              required: ["type", "question", "options", "correct"]
+            }
+          }
         }
       })
     });
@@ -58,10 +63,9 @@ ${pdfText}
       return res.status(response.status).json({ error: data.error?.message || 'Gemini API hatası.' });
     }
 
-    let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
-    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
     const questions = JSON.parse(rawText);
+
     return res.status(200).json({ questions });
 
   } catch (error) {
