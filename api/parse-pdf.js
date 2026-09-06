@@ -37,7 +37,8 @@ Analiz Edilecek Metin:
 ${pdfText.substring(0, 8000)}
     `;
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // Güncel Model Adı: gemini-3.6-flash
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
