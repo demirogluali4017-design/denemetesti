@@ -2,6 +2,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 let selectedFile = null;
 let currentQuestions = [];
+let detectedLanguage = "Türkçe / Fransızca";
 let currentQuestionIndex = 0;
 let userAnswers = {};
 let timeSpentPerQuestion = {};
@@ -39,6 +40,7 @@ async function startAnalysis() {
 
   document.getElementById("uploadScreen").classList.add("hidden");
   document.getElementById("loadingScreen").classList.remove("hidden");
+  document.getElementById("loadingText").textContent = "PDF Okunuyor ve Yapay Zeka Kategorilerine Ayırıyor...";
 
   try {
     const pdfText = await extractTextFromPDF(selectedFile);
@@ -56,8 +58,15 @@ async function startAnalysis() {
     }
 
     currentQuestions = data.questions;
+    detectedLanguage = data.detectedLanguage || "Fransızca";
+
     document.getElementById("loadingScreen").classList.add("hidden");
-    startQuiz();
+    
+    // BAŞLAMADAN ÖNCE EKRANINI DOLDUR VE GÖSTER
+    document.getElementById("detectedLangTag").textContent = detectedLanguage;
+    document.getElementById("totalQuestionsTag").textContent = currentQuestions.length;
+    document.getElementById("recommendedTimeTag").textContent = Math.round(currentQuestions.length * 1.8);
+    document.getElementById("preStartScreen").classList.remove("hidden");
 
   } catch (error) {
     alert("Hata: " + error.message);
@@ -67,7 +76,9 @@ async function startAnalysis() {
 }
 
 function startQuiz() {
+  document.getElementById("preStartScreen").classList.add("hidden");
   document.getElementById("quizScreen").classList.remove("hidden");
+  
   currentQuestionIndex = 0;
   userAnswers = {};
   timeSpentPerQuestion = {};
@@ -80,6 +91,7 @@ function startQuiz() {
     document.getElementById("timerBadge").textContent = `⏱️ ${mins}:${secs}`;
   }, 1000);
 
+  renderNavGrid();
   renderQuestion();
 }
 
@@ -90,19 +102,34 @@ function trackTimeForCurrentQuestion() {
   }
 }
 
-function renderQuestion() {
+function renderNavGrid() {
+  const navGrid = document.getElementById("questionNavGrid");
+  navGrid.innerHTML = "";
+
+  currentQuestions.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    if (idx === currentQuestionIndex) btn.classList.add("active");
+    if (userAnswers[idx]) btn.classList.add("answered");
+    btn.textContent = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    navGrid.appendChild(btn);
+  });
+}
+
+function jumpToQuestion(index) {
   trackTimeForCurrentQuestion();
+  currentQuestionIndex = index;
+  renderQuestion();
+}
+
+function renderQuestion() {
   questionStartTime = Date.now();
 
   const q = currentQuestions[currentQuestionIndex];
   document.getElementById("questionCounter").textContent = `Soru ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
   
-  // Multiple Choice kaçağını engelleme kontrolü
-  let typeDisplay = q.type || "Gramer / Dilbilgisi";
-  if (typeDisplay.toLowerCase().includes("multiple") || typeDisplay.toLowerCase().includes("choice")) {
-    typeDisplay = "Gramer / Dilbilgisi";
-  }
-  document.getElementById("questionTypeTag").textContent = typeDisplay;
+  document.getElementById("questionTypeTag").textContent = q.type || "Gramer / Dilbilgisi";
 
   if (q.passage) {
     document.getElementById("passageContainer").classList.remove("hidden");
@@ -130,6 +157,8 @@ function renderQuestion() {
   document.getElementById("prevBtn").disabled = currentQuestionIndex === 0;
   document.getElementById("nextBtn").classList.toggle("hidden", currentQuestionIndex === currentQuestions.length - 1);
   document.getElementById("finishBtn").classList.toggle("hidden", currentQuestionIndex !== currentQuestions.length - 1);
+
+  renderNavGrid();
 }
 
 function selectOption(optionStr) {
@@ -137,7 +166,13 @@ function selectOption(optionStr) {
   renderQuestion();
 }
 
+function clearAnswer() {
+  delete userAnswers[currentQuestionIndex];
+  renderQuestion();
+}
+
 function navigateQuestion(step) {
+  trackTimeForCurrentQuestion();
   currentQuestionIndex += step;
   renderQuestion();
 }
@@ -154,11 +189,7 @@ function finishQuiz() {
   const typeStats = {};
 
   currentQuestions.forEach((q, idx) => {
-    let type = q.type || "Gramer / Dilbilgisi";
-    if (type.toLowerCase().includes("multiple") || type.toLowerCase().includes("choice")) {
-      type = "Gramer / Dilbilgisi";
-    }
-
+    const type = q.type || "Gramer / Dilbilgisi";
     const timeSpent = timeSpentPerQuestion[idx] || 0;
     const userAnswer = userAnswers[idx];
 
@@ -183,6 +214,7 @@ function finishQuiz() {
   const totalCount = currentQuestions.length;
   const ydsScore = (correctCount * (100 / totalCount)).toFixed(1);
   
+  document.getElementById("resultExamLangText").textContent = `Tespit Edilen Sınav Dili: ${detectedLanguage}`;
   document.getElementById("ydsScoreText").textContent = ydsScore;
   document.getElementById("scoreText").textContent = `${correctCount} / ${totalCount}`;
   document.getElementById("emptyText").textContent = emptyCount;
@@ -197,7 +229,7 @@ function finishQuiz() {
   else if (ydsScore >= 70) level = "C (70-79)";
   else if (ydsScore >= 60) level = "D (60-69)";
   else if (ydsScore >= 50) level = "E (50-59)";
-  document.getElementById("ydsLevelTag").textContent = `YDS Seviyeniz: ${level}`;
+  document.getElementById("ydsLevelTag").textContent = `Seviye: ${level}`;
 
   const chartContainer = document.getElementById("typeAnalysisChart");
   chartContainer.innerHTML = "";
@@ -233,9 +265,76 @@ function finishQuiz() {
   }
 
   document.getElementById("analysisAdviceText").innerHTML = `
-    En çok zaman harcadığınız soru tipi: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye). <br><br>
-    YDS'de zaman yönetimi kritik önem taşır. Soru başına ortalama 1.5 - 2 dakikayı aşmamaya özen göstermelisiniz. ${ydsScore < 70 ? 'Özellikle düşük başarı oranına sahip olduğunuz soru gruplarının çözüm taktiklerini tekrar incelemeniz önerilir.' : 'Tebrikler! Yüksek başarı oranına sahipsiniz, hızınızı ve soru taktiklerinizi koruyun.'}
+    <strong>Sınav Dili:</strong> Bu sınav yapay zeka tarafından <strong>${detectedLanguage}</strong> olarak tespit edilmiştir ve analizler bu dile özel olarak oluşturulmuştur.<br><br>
+    En çok zaman harcadığınız bölüm: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye).
   `;
+}
+
+// YANLIŞ SORULARI YAPAY ZEKA İLE ANALİZ ETME
+async function analyzeWrongQuestionsWithAI() {
+  const wrongQuestions = [];
+
+  currentQuestions.forEach((q, idx) => {
+    const userAns = userAnswers[idx];
+    if (userAns && userAns !== q.correct) {
+      wrongQuestions.push({
+        qNumber: idx + 1,
+        question: q.question,
+        userAnswer: userAns,
+        correctAnswer: q.correct,
+        type: q.type
+      });
+    }
+  });
+
+  if (wrongQuestions.length === 0) {
+    alert("Tebrikler! Hiç yanlış cevabınız bulunmuyor.");
+    return;
+  }
+
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("loadingScreen").classList.remove("hidden");
+  document.getElementById("loadingText").textContent = "Yapay Zeka Yanlış Cevaplarınızı Analiz Ediyor ve Çözüm Taktikleri Hazırlıyor...";
+
+  try {
+    const response = await fetch("/api/analyze-wrongs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ wrongQuestions, language: detectedLanguage })
+    });
+
+    const data = await response.json();
+
+    document.getElementById("loadingScreen").classList.add("hidden");
+    document.getElementById("resultScreen").classList.remove("hidden");
+
+    const resultBox = document.getElementById("wrongAnalysisResult");
+    resultBox.classList.remove("hidden");
+    
+    let htmlContent = `<h3>🧠 Yapay Zeka Hata ve Çözüm Analizi (${detectedLanguage})</h3><br>`;
+    
+    if (data.analysis && Array.isArray(data.analysis)) {
+      data.analysis.forEach(item => {
+        htmlContent += `
+          <div class="wrong-item">
+            <p><strong>Soru ${item.qNumber} (${item.type}):</strong></p>
+            <p style="color:#dc2626;">Sizin Cevabınız: ${item.userAnswer}</p>
+            <p style="color:#16a34a;">Doğru Cevap: ${item.correctAnswer}</p>
+            <p style="margin-top:0.4rem;"><strong>Neden Hatalı & Çözüm İpucu:</strong> ${item.explanation}</p>
+          </div>
+        `;
+      });
+    } else {
+      htmlContent += `<p>${data.rawAnalysis || 'Analiz tamamlandı.'}</p>`;
+    }
+
+    resultBox.innerHTML = htmlContent;
+
+  } catch (error) {
+    alert("Analiz hatası: " + error.message);
+    document.getElementById("loadingScreen").classList.add("hidden");
+    document.getElementById("resultScreen").classList.remove("hidden");
+  }
 }
 
 function resetApp() {
@@ -246,5 +345,6 @@ function resetApp() {
   document.getElementById("fileNameDisplay").textContent = "Henüz dosya seçilmedi";
   document.getElementById("startParseBtn").classList.add("hidden");
   document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("wrongAnalysisResult").classList.add("hidden");
   document.getElementById("uploadScreen").classList.remove("hidden");
 }
