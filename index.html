@@ -1,38 +1,70 @@
-<!-- 4. SONUÇ VE DETAYLI ANALİZ EKRANI -->
-    <section id="resultScreen" class="card hidden">
-      <h2>🎉 YDS Sınav Sonuç Analizi</h2>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YDS Yapay Zeka Koçu</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <!-- 1. YÜKLEME VE GİRİŞ EKRANI -->
+    <section id="uploadScreen" class="card">
+      <h1>🎓 YDS Yapay Zeka Deneme Sınavı</h1>
+      <p>Sınav PDF dosyanızı yükleyin. Yapay zeka tüm soruları YDS kategorilerine ayırıp süre takipli simülasyona dönüştürsün.</p>
       
-      <div class="yds-score-card">
-        <p>Tahmini YDS Puanınız</p>
-        <h1 id="ydsScoreText">0.0</h1>
-        <span id="ydsLevelTag" class="level-tag">Seviye: -</span>
+      <div class="upload-box">
+        <input type="file" id="pdfInput" accept="application/pdf" style="display:none;" onchange="handleFileSelect(event)">
+        <button class="btn-primary" onclick="document.getElementById('pdfInput').click()">PDF Seç ve Yükle</button>
+        <span id="fileNameDisplay">Henüz dosya seçilmedi</span>
       </div>
 
-      <div class="score-summary">
-        <div class="score-card">
-          <span id="scoreText">0 / 0</span>
-          <p>Doğru / Toplam</p>
-        </div>
-        <div class="score-card">
-          <span id="emptyText">0</span>
-          <p>Boş Soru</p>
-        </div>
-        <div class="score-card">
-          <span id="totalTimeText">00:00</span>
-          <p>Toplam Süre</p>
-        </div>
-      </div>
-
-      <!-- YENİ GÖRSEL ANALİZ KARTLARI VE GRAFİK ALANI -->
-      <div class="analysis-box">
-        <h3>📊 Soru Tipi Bazlı Başarı ve Süre Grafiği</h3>
-        <div id="typeAnalysisChart" class="type-chart-container"></div>
-      </div>
-
-      <div class="analysis-box advice-box">
-        <h3>💡 Yapay Zeka YDS Strateji Tavsiyesi</h3>
-        <p id="analysisAdviceText">Analiz çıkarılıyor...</p>
-      </div>
-
-      <button onclick="resetApp()" class="btn-primary" style="margin-top: 1.5rem;">Yeni Deneme Yükle</button>
+      <button id="startParseBtn" class="btn-success hidden" onclick="startAnalysis()">Sınavı Hazırla ve Başlat</button>
     </section>
+
+    <!-- YENİ ALTIGEN (SOCKET) LOADING EKRANI -->
+    <section id="loadingScreen" class="card hidden">
+      <div class="loading-wrapper">
+        <div class="socket">
+          <div class="gel center-gel">
+            <div class="hex-brick h1"></div>
+            <div class="hex-brick h2"></div>
+            <div class="hex-brick h3"></div>
+          </div>
+          <div class="gel c1 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c2 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c3 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c4 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c5 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c6 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div>İstediğin hex-grid tabanlı yükleme animasyonunu entegre ederek, projenin güncellenmiş dosya yapılarını aşağıda derledim.
+
+### **1. `index.html`**
+Loading alanını yeni petek animasyonu HTML yapısıyla değiştirdik:
+
+```html
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YDS Soru & Analiz Portalı</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    
+    <!-- YÜKLEME (LOADING) EKRANI -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+      <div class="socket">
+        <div class="gel center-gel">
+          <div class="hex-brick h1"></div>
+          <div class="hex-brick h2"></div>
+          <div class="hex-brick h3"></div>
+        </div>
+        <div class="gel c1 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+        <div class="gel c2 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+        <div class="gel c3 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+        <div class="gel c4 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+        <div class="gel c5 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+        <div class="gel c6 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div>
