@@ -7,33 +7,29 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Yalnızca POST kabul edilir.' });
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY tanımlanmamış.' });
-  }
+  if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY bulunamadı.' });
 
   try {
     const { pdfText } = req.body;
-    if (!pdfText || pdfText.trim().length === 0) {
-      return res.status(400).json({ error: 'PDF içeriği boş veya okunamadı.' });
-    }
 
     const prompt = `
-Aşağıdaki metindeki TÜM çoktan seçmeli soruları eksiksiz şekilde analiz et ve SADECE saf bir JSON dizisi formatında döndür.
+Aşağıdaki metin bir YDS sınav belgesidir. Metindeki TÜM soruları analiz et ve SADECE saf bir JSON dizisi formatında döndür.
 
-JSON Formatı:
+JSON Şablonu:
 [
   {
-    "topic": "Soru Grubu veya Konu Adı (Örn: Matematik - Problemler, Paragrafta Anlam vb.)",
-    "question": "Soru metni",
-    "options": ["A şıkkı metni", "B şıkkı metni", "C şıkkı metni", "D şıkkı metni"],
+    "type": "Soru Tipi (Örn: Paragraf, Cloze Test, Kelime Bilgisi, Cümle Tamamlama, Çeviri, Paragraf Tamamlama, Anlam Bütünlüğü)",
+    "passage": "Eğer soru bir Paragrafa veya Cloze Test metnine bağlıysa, O METNİN TAMAMINI BURAYA EKLE. Bağımsız bir soru ise null yap.",
+    "question": "Soru metni (Cloze test ise boşluk içeren cümle veya soru numarası)",
+    "options": ["A şıkkı", "B şıkkı", "C şıkkı", "D şıkkı", "E şıkkı"],
     "correct": "A"
   }
 ]
 
-Kurallar:
-- Hiçbir soruyu atlama, belgedeki tüm soruları çıkar.
-- Yanıtına Markdown kaplaması (\`\`\`json) ekleme, sadece saf JSON döndür.
-- "topic" alanına sorunun ait olduğu genel konu/ders başlığını yaz.
+ÇOK ÖNEMLİ KRİTİK KURALLAR:
+1. PARAGRAF VE CLOZE TEST GRUPLARI: Örneğin bir paragraftan 4 soru çıkarılmışsa veya 1 Cloze Test metninden 5 soru çıkarılmışsa, O 4 VEYA 5 SORUNUN HER BİRİNİN "passage" ALANINA AYNI METNİ EKSİKSİZ BİÇİMDE TEKRAR YAZIN. Hiçbirini boş bırakmayın.
+2. Cloze test sorularında okuma parçasını mutlaka "passage" içine koyun.
+3. Yanıtına Markdown kaplaması (\`\`\`json) ekleme, sadece saf JSON döndür.
 
 Metin:
 ${pdfText}
@@ -45,24 +41,21 @@ ${pdfText}
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          response_mime_type: "application/json"
+        }
       })
     });
 
     const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'Gemini API hatası.' });
-    }
-
     let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
-    rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-
+    
     const questions = JSON.parse(rawText);
     return res.status(200).json({ questions });
 
   } catch (error) {
-    console.error("Sunucu Hatası:", error);
-    return res.status(500).json({ error: 'Soru ayrıştırma hatası oluştu.' });
+    console.error("API Hatası:", error);
+    return res.status(500).json({ error: 'Soru analizi sırasında hata oluştu.' });
   }
 }
