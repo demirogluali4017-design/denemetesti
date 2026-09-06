@@ -16,10 +16,13 @@ export default async function handler(req, res) {
     }
 
     const prompt = `
-Aşağıda bir öğrencinin ${language} YDS/YÖKDİL sınavında yanlış cevapladığı sorular verilmiştir.
-Her soru için öğrencinin neden yanlış yaptığını açıklayan, doğru cevabın mantığını öğreten Türkçe kısa ve net bir çözüm analizi oluştur.
+Aşağıda bir öğrencinin ${language} dilindeki YDS/YÖKDİL sınavında yanlış cevapladığı sorular verilmiştir.
 
-Yanlış Sorular:
+TÜM YANLIŞ SORULAR İÇİN:
+1. Öğrencinin işaretlediği şıkkın neden yanlış olduğunu ve doğru cevabın neden o şık olduğunu açıklayan Türkçe ve detaylı bir gerekçe yaz ("reason").
+2. Bu soru tipine (${language} dilbilgisi/çeviri/okuma vb.) özel hızlı çözüm taktiği ver ("tactic").
+
+Yanlış Sorular Listesi:
 ${JSON.stringify(wrongQuestions, null, 2)}
     `;
 
@@ -39,11 +42,13 @@ ${JSON.stringify(wrongQuestions, null, 2)}
               properties: {
                 qNumber: { type: "INTEGER" },
                 type: { type: "STRING" },
+                question: { type: "STRING" },
                 userAnswer: { type: "STRING" },
                 correctAnswer: { type: "STRING" },
-                explanation: { type: "STRING" }
+                reason: { type: "STRING" },
+                tactic: { type: "STRING" }
               },
-              required: ["qNumber", "type", "userAnswer", "correctAnswer", "explanation"]
+              required: ["qNumber", "type", "question", "userAnswer", "correctAnswer", "reason", "tactic"]
             }
           }
         }
