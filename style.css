@@ -75,6 +75,18 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 }
 .btn-secondary:hover { background-color: #e2e8f0; }
 
+.btn-clear {
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-clear:hover { background: #fca5a5; }
+
 .btn-success {
   background-color: #16a34a;
   color: white;
@@ -87,22 +99,69 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 .btn-success:hover { background-color: #15803d; }
 
 .loading { text-align: center; margin-top: 2rem; }
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #2563eb;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem auto;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.loading-title { margin-bottom: 1.5rem; font-weight: 600; color: #0f172a; }
 
+/* NAVİGASYON (SORU HARİTASI) STİLLERİ */
+.question-nav-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+}
+
+.nav-title {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.nav-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #334155;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nav-btn:hover { background: #e2e8f0; }
+.nav-btn.answered { background: #2563eb; color: white; border-color: #2563eb; }
+.nav-btn.active { border: 2px solid #0f172a; font-scale: 1.1; box-shadow: 0 0 0 2px #94a3b8; }
+
+/* TALİMAT / YÖNERGE KUTUSU */
+.instruction-box {
+  background: #fffbe2;
+  border: 1px solid #fde047;
+  color: #713f12;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* PARAGRAF VE SORU KUTULARI */
 .quiz-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   font-weight: bold;
 }
 
@@ -114,7 +173,6 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   font-size: 0.95rem;
 }
 
-/* Paragraf / Cloze Test Kutusu */
 .passage-box {
   background: #f1f5f9;
   border-left: 4px solid #0284c7;
@@ -129,7 +187,13 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 }
 .passage-box h4 { color: #0369a1; margin-bottom: 0.5rem; }
 
-/* Soru Tipi Rozeti */
+.question-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
 .type-badge {
   display: inline-block;
   background: #e0f2fe;
@@ -138,7 +202,6 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   font-weight: bold;
   padding: 0.25rem 0.6rem;
   border-radius: 4px;
-  margin-bottom: 0.5rem;
   text-transform: uppercase;
 }
 
@@ -171,7 +234,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 
 .actions { margin-top: 1.5rem; display: flex; justify-content: space-between; gap: 1rem; }
 
-/* YDS Puan Kartı */
+/* YDS SONUÇ STİLLERİ */
 .yds-score-card {
   background: linear-gradient(135deg, #1e3a8a, #3b82f6);
   color: white;
@@ -183,12 +246,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 .yds-score-card h1 { font-size: 3rem; margin: 0.5rem 0; }
 .level-tag { background: rgba(255,255,255,0.2); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.9rem; }
 
-.score-summary {
-  display: flex;
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
+.score-summary { display: flex; gap: 1rem; margin: 1.5rem 0; }
 .score-card {
   flex: 1;
   background: #f8fafc;
@@ -197,7 +255,6 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   text-align: center;
   border: 1px solid #e2e8f0;
 }
-
 .score-card span { font-size: 1.8rem; font-weight: bold; color: #2563eb; display: block; }
 
 .analysis-box {
@@ -207,15 +264,9 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   border-radius: 10px;
   margin-top: 1.25rem;
 }
-
-.advice-box {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-}
-
+.advice-box { background: #eff6ff; border-color: #bfdbfe; }
 .analysis-box h3 { color: #0f172a; margin-bottom: 1rem; font-size: 1.1rem; }
 
-/* Analiz Tablosu */
 .analysis-table {
   width: 100%;
   border-collapse: collapse;
@@ -228,3 +279,225 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   border-bottom: 1px solid #e2e8f0;
 }
 .analysis-table th { background: #f1f5f9; color: #475569; }
+
+/* ------------------------------------------------------------- */
+/* ORWELLIAN LOADER ANIMATION (UIverse.io by 0xnihilism) STYLES */
+/* ------------------------------------------------------------- */
+
+.orwellian-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900;
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+}
+
+.orwellian-container .orwellian-loader {
+  width: 280px;
+  height: 280px;
+  background-color: #000;
+  border: 10px solid #333;
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: subtle-rotate 6s infinite ease-in-out;
+}
+
+.orwellian-container .eye {
+  width: 160px;
+  height: 60px;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -60%);
+  animation: pulse 2s infinite, eye-glow 4s infinite;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.orwellian-container .pupil {
+  width: 50px;
+  height: 50px;
+  background-color: #000;
+  border-radius: 50%;
+  position: absolute;
+  top: 33%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: look-diagonal 4s infinite ease-in-out;
+}
+
+.orwellian-container .pupil::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, rgb(255, 0, 0) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.7;
+}
+
+.orwellian-container .eyelid {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  animation: blink 4s infinite;
+}
+
+.orwellian-container .spotlight {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  width: 47px;
+  height: 200px;
+  background: linear-gradient(to bottom, rgba(255, 0, 0, 0.8), transparent);
+  filter: blur(8px);
+  transform-origin: top;
+  animation: spotlight-sweep-diagonal 4s infinite ease-in-out;
+}
+
+.orwellian-container .spotlight::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  filter: blur(5px);
+}
+
+.orwellian-container .text {
+  position: absolute;
+  bottom: 20px;
+  left: 10px;
+  right: 10px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #f8d17c;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: glitch 1s infinite;
+  z-index: 20;
+  user-select: none;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.orwellian-container .scan-lines {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.3) 50%);
+  background-size: 100% 4px;
+  animation: scan 10s linear infinite;
+  z-index: 30;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.orwellian-container .tv-effect {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 2px, 3px 100%;
+  animation: tv-flicker 0.15s infinite;
+  z-index: 35;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.orwellian-container .tv-effect::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 80%),
+    repeating-radial-gradient(circle at center, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 4px);
+  background-size: 100% 100%, 3px 3px;
+  pointer-events: none;
+}
+
+.orwellian-container .orwellian-loader::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 2px);
+  pointer-events: none;
+  z-index: 40;
+}
+
+.orwellian-container .orwellian-loader::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.5) 90%);
+  z-index: 35;
+  pointer-events: none;
+}
+
+/* KEYFRAMES */
+@keyframes look-diagonal {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-40%) rotate(-15deg); }
+  75% { transform: translateX(-60%) rotate(15deg); }
+}
+
+@keyframes spotlight-sweep-diagonal {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  25% { transform: translateX(-40%) rotate(-15deg); }
+  75% { transform: translateX(-60%) rotate(15deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -60%) scale(1); }
+  50% { transform: translate(-50%, -60%) scale(1.05); }
+}
+
+@keyframes glitch {
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  25% { transform: translate(-2px, 2px); opacity: 0.75; }
+  50% { transform: translate(2px, -2px); opacity: 0.5; }
+  75% { transform: translate(-2px, -2px); opacity: 0.75; }
+}
+
+@keyframes blink {
+  0%, 90%, 100% { height: 0; }
+  95% { height: 100%; }
+}
+
+@keyframes scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+@keyframes tv-flicker {
+  0% { opacity: 0.27049; }
+  50% { opacity: 0.35755; }
+  100% { opacity: 0.35762; }
+}
+
+@keyframes eye-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
+}
+
+@media (max-width: 480px) {
+  .orwellian-container .orwellian-loader { width: 240px; height: 240px; }
+  .orwellian-container .eye { width: 140px; height: 50px; }
+  .orwellian-container .pupil { width: 40px; height: 40px; }
+  .orwellian-container .spotlight { width: 40px; height: 160px; }
+  .orwellian-container .text { font-size: 14px; }
+}
