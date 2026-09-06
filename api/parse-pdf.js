@@ -16,18 +16,21 @@ export default async function handler(req, res) {
     }
 
     const prompt = `
-Aşağıdaki metin bir YDS (Yabancı Dil Bilgisi Seviye Tespit Sınavı) belgesidir. 
+Aşağıdaki metin bir YDS / YÖKDİL dil sınavı belgesidir. 
 TÜM soruları eksiksiz analiz et.
 
-ÇOK ÖNEMLİ - "type" KATEGORİZASYON KURALI:
-"type" alanına ASLA "Multiple Choice", "Test", "Soru" gibi genel kelimeler yazma! 
-Sadece ve sadece aşağıdaki resmi YDS soru tiplerinden birini seçerek yaz:
+ÖNEMLİ - DİL VE KATEGORİ TESPİTİ:
+1. Metnin ana yabancı dilini tespit et (örn: "Fransızca", "İngilizce", "Almanca").
+2. "type" kategorisi alanına ASLA "Multiple Choice" veya "İngilizce - Türkçe Çeviri" (eğer sınav Fransızca ise) yazma!
+3. Tespit ettiğin dile göre doğru çeviri kategorisi ver. (Örn: Fransızca ise "Fransızca - Türkçe Çeviri" veya "Türkçe - Fransızca Çeviri").
+
+KULLANILACAK KATEGORİLER:
 - "Kelime Bilgisi"
 - "Gramer / Dilbilgisi"
 - "Cloze Test"
 - "Cümle Tamamlama"
-- "İngilizce - Türkçe Çeviri"
-- "Türkçe - İngilizce Çeviri"
+- "[Tespit Edilen Dil] - Türkçe Çeviri"
+- "Türkçe - [Tespit Edilen Dil] Çeviri"
 - "Paragraf / Okuma Anlama"
 - "Diyalog Tamamlama"
 - "Eş Anlamlı Cümle (Restatement)"
@@ -48,22 +51,29 @@ ${pdfText}
         generationConfig: {
           response_mime_type: "application/json",
           response_schema: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                instruction: { type: "STRING" },
-                type: { type: "STRING" },
-                passage: { type: "STRING", nullable: true },
-                question: { type: "STRING" },
-                options: {
-                  type: "ARRAY",
-                  items: { type: "STRING" }
-                },
-                correct: { type: "STRING" }
-              },
-              required: ["type", "question", "options", "correct"]
-            }
+            type: "OBJECT",
+            properties: {
+              detectedLanguage: { type: "STRING" },
+              questions: {
+                type: "ARRAY",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    instruction: { type: "STRING" },
+                    type: { type: "STRING" },
+                    passage: { type: "STRING", nullable: true },
+                    question: { type: "STRING" },
+                    options: {
+                      type: "ARRAY",
+                      items: { type: "STRING" }
+                    },
+                    correct: { type: "STRING" }
+                  },
+                  required: ["type", "question", "options", "correct"]
+                }
+              }
+            },
+            required: ["detectedLanguage", "questions"]
           }
         }
       })
@@ -75,10 +85,13 @@ ${pdfText}
       return res.status(response.status).json({ error: data.error?.message || 'Gemini API hatası.' });
     }
 
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
-    const questions = JSON.parse(rawText);
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const parsedData = JSON.parse(rawText);
 
-    return res.status(200).json({ questions });
+    return res.status(200).json({
+      detectedLanguage: parsedData.detectedLanguage || "Fransızca",
+      questions: parsedData.questions || []
+    });
 
   } catch (error) {
     console.error("API Hatası:", error);
