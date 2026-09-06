@@ -23,9 +23,9 @@
       <button id="startParseBtn" class="btn-success hidden" onclick="startAnalysis()">Sınavı Hazırla ve Başlat</button>
     </section>
 
-    <!-- YENİ ALTIGEN (SOCKET) LOADING EKRANI -->
+    <!-- 2. HEX-GRID LOADING EKRANI -->
     <section id="loadingScreen" class="card hidden">
-      <div class="loading-wrapper">
+      <div class="loading-container">
         <div class="socket">
           <div class="gel center-gel">
             <div class="hex-brick h1"></div>
@@ -37,34 +37,108 @@
           <div class="gel c3 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
           <div class="gel c4 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
           <div class="gel c5 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c6 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div>İstediğin hex-grid tabanlı yükleme animasyonunu entegre ederek, projenin güncellenmiş dosya yapılarını aşağıda derledim.
-
-### **1. `index.html`**
-Loading alanını yeni petek animasyonu HTML yapısıyla değiştirdik:
-
-```html
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>YDS Soru & Analiz Portalı</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="container">
-    
-    <!-- YÜKLEME (LOADING) EKRANI -->
-    <div id="loadingOverlay" class="loading-overlay hidden">
-      <div class="socket">
-        <div class="gel center-gel">
-          <div class="hex-brick h1"></div>
-          <div class="hex-brick h2"></div>
-          <div class="hex-brick h3"></div>
+          <div class="gel c6 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c7 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c8 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c9 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c10 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c11 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c12 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c13 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c14 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c15 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c16 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c17 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c18 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c19 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c20 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c21 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c22 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c23 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c24 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c25 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c26 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c27 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c28 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c29 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c30 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c31 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c32 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c33 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c34 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c35 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c36 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
+          <div class="gel c37 r3"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
         </div>
-        <div class="gel c1 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-        <div class="gel c2 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-        <div class="gel c3 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-        <div class="gel c4 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-        <div class="gel c5 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-        <div class="gel c6 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div>
+        <p class="loading-text">PDF Okunuyor ve Yapay Zeka YDS Kategorilerine Ayırıyor...</p>
+      </div>
+    </section>
+
+    <!-- 3. SINAV EKRANI -->
+    <section id="quizScreen" class="card hidden">
+      <div class="quiz-header">
+        <span id="questionCounter">Soru 1 / --</span>
+        <span id="timerBadge">⏱️ 00:00</span>
+      </div>
+
+      <div id="passageContainer" class="passage-box hidden">
+        <h4>Okuma Metni</h4>
+        <p id="passageText"></p>
+      </div>
+
+      <div class="question-box">
+        <span id="questionTypeTag" class="type-tag">Kategori</span>
+        <h3 id="questionText">Soru metni yükleniyor...</h3>
+        <div id="optionsContainer" class="options-grid"></div>
+      </div>
+
+      <div class="quiz-footer">
+        <button id="prevBtn" class="btn-secondary" onclick="navigateQuestion(-1)">Önceki</button>
+        <button id="nextBtn" class="btn-primary" onclick="navigateQuestion(1)">Sonraki</button>
+        <button id="finishBtn" class="btn-danger" onclick="finishQuiz()">Sınavı Bitir</button>
+      </div>
+    </section>
+
+    <!-- 4. SONUÇ VE DETAYLI ANALİZ EKRANI -->
+    <section id="resultScreen" class="card hidden">
+      <h2>🎉 YDS Sınav Sonuç Analizi</h2>
+      
+      <div class="yds-score-card">
+        <p>Tahmini YDS Puanınız</p>
+        <h1 id="ydsScoreText">0.0</h1>
+        <span id="ydsLevelTag" class="level-tag">Seviye: -</span>
+      </div>
+
+      <div class="score-summary">
+        <div class="score-card">
+          <span id="scoreText">0 / 0</span>
+          <p>Doğru / Toplam</p>
+        </div>
+        <div class="score-card">
+          <span id="emptyText">0</span>
+          <p>Boş Soru</p>
+        </div>
+        <div class="score-card">
+          <span id="totalTimeText">00:00</span>
+          <p>Toplam Süre</p>
+        </div>
+      </div>
+
+      <div class="analysis-box">
+        <h3>📊 Soru Tipi Bazlı Başarı ve Süre Grafiği</h3>
+        <div id="typeAnalysisChart" class="type-chart-container"></div>
+      </div>
+
+      <div class="analysis-box advice-box">
+        <h3>💡 Yapay Zeka YDS Strateji Tavsiyesi</h3>
+        <p id="analysisAdviceText">Analiz çıkarılıyor...</p>
+      </div>
+
+      <button onclick="resetApp()" class="btn-primary" style="margin-top: 1.5rem;">Yeni Deneme Yükle</button>
+    </section>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
