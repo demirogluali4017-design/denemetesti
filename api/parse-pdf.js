@@ -20,8 +20,9 @@ Aşağıdaki metin bir YDS (Yabancı Dil Bilgisi Seviye Tespit Sınavı) belgesi
 TÜM soruları eksiksiz analiz et.
 
 Aşağıdaki kurallara kesinlikle uy:
-1. Paragraf ve Cloze Test metinleri bir grup soruya aitse (örneğin 1-5 veya 35-38 arası), o metni gruba ait HER BİR sorunun "passage" alanına eksiksiz kopyala. Bağımsız sorularda "passage" alanını null yap.
-2. "correct" alanına sorunun doğru şık harfini (A, B, C, D veya E) ekle.
+1. "instruction": Sorunun üzerinde PDF'te verilen soru talimatını/yönergesini yaz (Örn: "1-6. sorularda boş bırakılan yerlere uygun düşen sözcük veya ifadeyi bulunuz."). Eğer özel bir yönerge yoksa soru tipine uygun genel bir Türkçe yönerge yaz.
+2. Paragraf ve Cloze Test metinleri bir grup soruya aitse, o metni gruba ait HER BİR sorunun "passage" alanına eksiksiz kopyala. Bağımsız sorularda "passage" alanını null yap.
+3. "correct" alanına sorunun doğru şık harfini (A, B, C, D veya E) ekle.
 
 Metin:
 ${pdfText}
@@ -41,6 +42,7 @@ ${pdfText}
             items: {
               type: "OBJECT",
               properties: {
+                instruction: { type: "STRING" },
                 type: { type: "STRING" },
                 passage: { type: "STRING", nullable: true },
                 question: { type: "STRING" },
