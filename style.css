@@ -86,89 +86,17 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 }
 .btn-success:hover { background-color: #15803d; }
 
-.btn-clear {
-  background-color: #fee2e2;
-  color: #dc2626;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+.loading { text-align: center; margin-top: 2rem; }
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem auto;
 }
-.btn-clear:hover { background-color: #fca5a5; }
-
-/* EĞLENCELİ YÜKLEME BARI VE KOŞAN ADAM STİLLERİ */
-.loading {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px dashed #cbd5e1;
-}
-
-.loading-title {
-  font-weight: bold;
-  color: #0f172a;
-  margin-bottom: 1.5rem;
-}
-
-.progress-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 500px;
-  margin: 2rem auto 1rem auto;
-  padding-top: 25px;
-}
-
-.runner {
-  position: absolute;
-  top: -12px;
-  left: 0%;
-  font-size: 2rem;
-  transform: translateX(-50%);
-  transition: left 0.3s ease-out;
-  z-index: 10;
-  animation: bounce 0.4s infinite alternate;
-}
-
-@keyframes bounce {
-  0% { transform: translateX(-50%) translateY(0); }
-  100% { transform: translateX(-50%) translateY(-6px); }
-}
-
-.progress-bar-container {
-  width: 100%;
-  height: 18px;
-  background-color: #e2e8f0;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.progress-bar {
-  width: 0%;
-  height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #2563eb);
-  border-radius: 10px;
-  transition: width 0.3s ease-out;
-}
-
-.percent-text {
-  display: block;
-  margin-top: 0.75rem;
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: #2563eb;
-}
-
-.funny-quote {
-  font-size: 0.85rem;
-  color: #64748b;
-  font-style: italic;
-  margin-top: 0.5rem;
-}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 .quiz-header {
   display: flex;
@@ -186,6 +114,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   font-size: 0.95rem;
 }
 
+/* Paragraf / Cloze Test Kutusu */
 .passage-box {
   background: #f1f5f9;
   border-left: 4px solid #0284c7;
@@ -200,13 +129,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 }
 .passage-box h4 { color: #0369a1; margin-bottom: 0.5rem; }
 
-.question-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
+/* Soru Tipi Rozeti */
 .type-badge {
   display: inline-block;
   background: #e0f2fe;
@@ -215,6 +138,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   font-weight: bold;
   padding: 0.25rem 0.6rem;
   border-radius: 4px;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
 }
 
@@ -247,6 +171,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 
 .actions { margin-top: 1.5rem; display: flex; justify-content: space-between; gap: 1rem; }
 
+/* YDS Puan Kartı */
 .yds-score-card {
   background: linear-gradient(135deg, #1e3a8a, #3b82f6);
   color: white;
@@ -290,6 +215,7 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 
 .analysis-box h3 { color: #0f172a; margin-bottom: 1rem; font-size: 1.1rem; }
 
+/* Analiz Tablosu */
 .analysis-table {
   width: 100%;
   border-collapse: collapse;

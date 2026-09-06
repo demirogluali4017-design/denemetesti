@@ -1,266 +1,246 @@
-let allSets = [];
-let currentSetIndex = 0;
-let currentArticleIndex = 0;
-let currentQuestionIndex = 0;
-const userAnswers = {};
-let secondsPassed = 0;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let currentQuestions = [];
+let currentIndex = 0;
+let userAnswers = {}; 
+let timeSpentPerQuestion = {}; 
+let questionStartTime = 0;
+
 let timerInterval = null;
+let secondsPassed = 0;
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("upload-date").valueAsDate = new Date();
-  initData();
-  startTimer();
-});
+async function handlePDFUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
-function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-  if (screenId === 'quiz-screen') {
-    populateDropdown();
-    if (allSets.length > 0) loadState();
-  }
-}
-
-function initData() {
-  const localData = localStorage.getItem("yds_question_sets");
-  if (localData) {
-    allSets = JSON.parse(localData);
-  } else if (window.ydsFransizcaDeneme) {
-    allSets = [{
-      id: "set_default",
-      date: new Date().toISOString().split('T')[0],
-      topic: "Genel Fransızca",
-      articles: window.ydsFransizcaDeneme
-    }];
-    localStorage.setItem("yds_question_sets", JSON.stringify(allSets));
-  }
-}
-
-function populateDropdown() {
-  const dropdown = document.getElementById("set-select");
-  dropdown.innerHTML = "";
-  if (allSets.length === 0) {
-    dropdown.innerHTML = `<option>Henüz yüklenmiş veri yok</option>`;
-    return;
-  }
-  allSets.forEach((set, index) => {
-    const opt = document.createElement("option");
-    opt.value = index;
-    opt.innerText = `[${set.date}] - ${set.topic}`;
-    if (index === currentSetIndex) opt.selected = true;
-    dropdown.appendChild(opt);
-  });
-}
-
-function handleSaveSet() {
-  const topic = document.getElementById("upload-topic").value.trim();
-  const date = document.getElementById("upload-date").value;
-  const jsonText = document.getElementById("upload-json").value.trim();
-
-  if (!topic || !jsonText) {
-    alert("Lütfen Konu Başlığı ve Soru Verisini doldurun!");
-    return;
-  }
+  document.getElementById("pdfStatus").textContent = `Yüklenen: ${file.name}`;
+  document.getElementById("loadingBox").classList.remove("hidden");
 
   try {
-    const parsedArticles = JSON.parse(jsonText);
-    const newSet = {
-      id: "set_" + Date.now(),
-      date: date || new Date().toISOString().split('T')[0],
-      topic: topic,
-      articles: Array.isArray(parsedArticles) ? parsedArticles : [parsedArticles]
-    };
+    const extractedText = await extractTextFromPDF(file);
 
-    allSets.unshift(newSet);
-    localStorage.setItem("yds_question_sets", JSON.stringify(allSets));
-    alert("✅ Soru seti tarihe ve konuya göre başarıyla entegre edildi!");
+    const response = await fetch('/api/parse-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pdfText: extractedText })
+    });
 
-    document.getElementById("upload-topic").value = "";
-    document.getElementById("upload-json").value = "";
+    const data = await response.json();
+    document.getElementById("loadingBox").classList.add("hidden");
 
-    currentSetIndex = 0;
-    currentArticleIndex = 0;
-    currentQuestionIndex = 0;
-    showScreen('quiz-screen');
-  } catch (err) {
-    alert("❌ HATA: Yapıştırdığınız veri geçerli bir JSON formatı değil.");
+    if (data.questions && data.questions.length > 0) {
+      currentQuestions = data.questions;
+      userAnswers = {};
+      timeSpentPerQuestion = {};
+      
+      document.getElementById("uploadScreen").classList.add("hidden");
+      document.getElementById("startConfirmScreen").classList.remove("hidden");
+      document.getElementById("readyQuestionsCount").textContent = `Toplam ${currentQuestions.length} YDS sorusu başarıyla hazırlandı.`;
+    } else {
+      alert("Hata: " + (data.error || "Soru çıkarılamadı."));
+    }
+
+  } catch (error) {
+    console.error(error);
+    document.getElementById("loadingBox").classList.add("hidden");
+    alert("PDF işlenirken bir sunucu hatası oluştu.");
   }
 }
 
-function changeSet(index) {
-  currentSetIndex = parseInt(index);
-  currentArticleIndex = 0;
-  currentQuestionIndex = 0;
-  loadState();
+async function extractTextFromPDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    fullText += textContent.items.map(item => item.str).join(" ") + "\n";
+  }
+  return fullText;
 }
 
-function renderNavGrid(questions) {
-  const grid = document.getElementById("question-nav-grid");
-  grid.innerHTML = "";
-
-  questions.forEach((q, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "q-nav-btn";
-    btn.innerText = idx + 1;
-
-    if (userAnswers[q.id]) {
-      btn.classList.add("answered");
-    }
-    if (idx === currentQuestionIndex) {
-      btn.classList.add("active");
-    }
-
-    btn.onclick = () => {
-      currentQuestionIndex = idx;
-      loadState();
-    };
-
-    grid.appendChild(btn);
-  });
+function startQuiz() {
+  document.getElementById("startConfirmScreen").classList.add("hidden");
+  document.getElementById("quizScreen").classList.remove("hidden");
+  
+  currentIndex = 0;
+  secondsPassed = 0;
+  startTimer();
+  displayQuestion();
 }
 
-function loadState() {
-  const activeSet = allSets[currentSetIndex];
-  if (!activeSet || !activeSet.articles || activeSet.articles.length === 0) return;
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secondsPassed++;
+    const mins = String(Math.floor(secondsPassed / 60)).padStart(2, '0');
+    const secs = String(secondsPassed % 60).padStart(2, '0');
+    document.getElementById("timerText").textContent = `${mins}:${secs}`;
+  }, 1000);
+}
 
-  const currentArticle = activeSet.articles[currentArticleIndex];
-  const currentQuestion = currentArticle.questions[currentQuestionIndex];
+function trackTimeForCurrentQuestion() {
+  if (questionStartTime > 0) {
+    const elapsed = Math.round((Date.now() - questionStartTime) / 1000);
+    timeSpentPerQuestion[currentIndex] = (timeSpentPerQuestion[currentIndex] || 0) + elapsed;
+  }
+  questionStartTime = Date.now();
+}
 
-  // Başlıklar
-  document.getElementById("article-number").innerText = `Metin ${currentArticleIndex + 1} / ${activeSet.articles.length}`;
-  document.getElementById("article-title").innerText = currentArticle.title;
-  document.getElementById("article-text").innerText = currentArticle.text;
+function displayQuestion() {
+  trackTimeForCurrentQuestion();
 
-  document.getElementById("question-number").innerText = `Soru ${currentQuestionIndex + 1} / ${currentArticle.questions.length}`;
+  const q = currentQuestions[currentIndex];
+  document.getElementById("questionCounter").textContent = `Soru: ${currentIndex + 1} / ${currentQuestions.length}`;
+  document.getElementById("questionTypeTag").textContent = q.type || "YDS Genel";
+  document.getElementById("questionText").textContent = `${currentIndex + 1}. ${q.question}`;
 
-  // Navigasyon Izgarasını Yenile
-  renderNavGrid(currentArticle.questions);
+  // Paragraf veya Cloze Test Metni Kontrolü
+  const passageBox = document.getElementById("passageBox");
+  const passageTextElement = document.getElementById("passageText");
 
-  // Öncül (Roma Rakamı vs.) Ve Soru Kökü Ayrıştırması
-  const prefaceBox = document.getElementById("question-preface");
-  if (currentQuestion.preface) {
-    prefaceBox.innerText = currentQuestion.preface;
-    prefaceBox.style.display = "block";
+  if (q.passage && q.passage !== "null" && q.passage.trim().length > 10) {
+    passageBox.classList.remove("hidden");
+    passageTextElement.textContent = q.passage;
   } else {
-    prefaceBox.style.display = "none";
+    passageBox.classList.add("hidden");
+    passageTextElement.textContent = "";
   }
 
-  document.getElementById("question-title").innerText = `Soru ${currentQuestionIndex + 1}: ${currentQuestion.question}`;
+  // Şıkların Hazırlanması
+  const container = document.getElementById("optionsContainer");
+  container.innerHTML = "";
 
-  calculateScore();
-
-  // Şıklar
-  const optionsGroup = document.getElementById("options-group");
-  optionsGroup.innerHTML = "";
-
-  const savedAnswer = userAnswers[currentQuestion.id];
-
-  currentQuestion.options.forEach((opt) => {
-    const letter = opt.charAt(0);
+  q.options.forEach((optText, i) => {
+    const letter = String.fromCharCode(65 + i);
     const btn = document.createElement("button");
     btn.className = "option-btn";
-    btn.innerText = opt;
-
-    if (savedAnswer) {
-      btn.disabled = true;
-      if (letter === currentQuestion.answer) btn.classList.add("correct");
-      if (letter === savedAnswer && savedAnswer !== currentQuestion.answer) btn.classList.add("wrong");
-    } else {
-      btn.onclick = () => checkAnswer(letter, currentQuestion);
+    if (userAnswers[currentIndex] === letter) {
+      btn.classList.add("selected");
     }
-    optionsGroup.appendChild(btn);
+    btn.textContent = `${letter}) ${optText}`;
+    btn.onclick = () => selectOption(letter);
+    container.appendChild(btn);
   });
 
-  // Çözüm Analizi
-  const expBox = document.getElementById("explanation-box");
-  if (savedAnswer) {
-    expBox.innerHTML = `💡 <strong>Çözüm Analizi:</strong> ${currentQuestion.explanation}`;
-    expBox.style.display = "block";
+  document.getElementById("prevBtn").style.visibility = currentIndex === 0 ? "hidden" : "visible";
+  if (currentIndex === currentQuestions.length - 1) {
+    document.getElementById("nextBtn").classList.add("hidden");
+    document.getElementById("finishBtn").classList.remove("hidden");
   } else {
-    expBox.style.display = "none";
+    document.getElementById("nextBtn").classList.remove("hidden");
+    document.getElementById("finishBtn").classList.add("hidden");
   }
-
-  updateNavButtons();
 }
 
-function checkAnswer(selectedLetter, question) {
-  userAnswers[question.id] = selectedLetter;
-  loadState();
+function selectOption(letter) {
+  userAnswers[currentIndex] = letter;
+  displayQuestion();
 }
 
-function calculateScore() {
-  let correct = 0, wrong = 0;
-  const activeSet = allSets[currentSetIndex];
-  if (!activeSet) return;
-
-  activeSet.articles.forEach(article => {
-    article.questions.forEach(q => {
-      const ans = userAnswers[q.id];
-      if (ans) {
-        if (ans === q.answer) correct++;
-        else wrong++;
-      }
-    });
-  });
-
-  document.getElementById("score-tracker").innerText = `Doğru: ${correct} | Yanlış: ${wrong}`;
-}
-
-function updateNavButtons() {
-  const prevBtn = document.getElementById("prev-btn");
-  const nextBtn = document.getElementById("next-btn");
-  const activeSet = allSets[currentSetIndex];
-
-  prevBtn.disabled = (currentArticleIndex === 0 && currentQuestionIndex === 0);
-
-  const currentArticle = activeSet.articles[currentArticleIndex];
-
-  if (currentQuestionIndex === currentArticle.questions.length - 1) {
-    if (currentArticleIndex === activeSet.articles.length - 1) {
-      nextBtn.innerText = "Seti Tamamla 🏁";
-    } else {
-      nextBtn.innerText = "Sonraki Makaleye Geç ➔";
-    }
-  } else {
-    nextBtn.innerText = "Sonraki Soru ➔";
+function prevQuestion() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    displayQuestion();
   }
 }
 
 function nextQuestion() {
-  const activeSet = allSets[currentSetIndex];
-  const currentArticle = activeSet.articles[currentArticleIndex];
-
-  if (currentQuestionIndex < currentArticle.questions.length - 1) {
-    currentQuestionIndex++;
-  } else if (currentArticleIndex < activeSet.articles.length - 1) {
-    currentArticleIndex++;
-    currentQuestionIndex = 0;
-  } else {
-    alert("Bu setteki tüm soruları tamamladınız!");
-    return;
+  if (currentIndex < currentQuestions.length - 1) {
+    currentIndex++;
+    displayQuestion();
   }
-  loadState();
 }
 
-function prevQuestion() {
-  const activeSet = allSets[currentSetIndex];
+function finishQuiz() {
+  trackTimeForCurrentQuestion();
+  clearInterval(timerInterval);
 
-  if (currentQuestionIndex > 0) {
-    currentQuestionIndex--;
-  } else if (currentArticleIndex > 0) {
-    currentArticleIndex--;
-    const prevArticle = activeSet.articles[currentArticleIndex];
-    currentQuestionIndex = prevArticle.questions.length - 1;
+  document.getElementById("quizScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
+
+  let correctCount = 0;
+  const typeStats = {}; 
+
+  currentQuestions.forEach((q, idx) => {
+    const type = q.type || "Genel Gramer";
+    const timeSpent = timeSpentPerQuestion[idx] || 0;
+
+    if (!typeStats[type]) {
+      typeStats[type] = { total: 0, correct: 0, totalTime: 0 };
+    }
+
+    typeStats[type].total++;
+    typeStats[type].totalTime += timeSpent;
+
+    if (userAnswers[idx] === q.correct) {
+      correctCount++;
+      typeStats[type].correct++;
+    }
+  });
+
+  const totalCount = currentQuestions.length;
+  // YDS Puan Hesaplama
+  const ydsScore = (correctCount * (100 / totalCount)).toFixed(1);
+  
+  document.getElementById("ydsScoreText").textContent = ydsScore;
+  document.getElementById("scoreText").textContent = `${correctCount} / ${totalCount}`;
+  
+  const mins = String(Math.floor(secondsPassed / 60)).padStart(2, '0');
+  const secs = String(secondsPassed % 60).padStart(2, '0');
+  document.getElementById("totalTimeText").textContent = `${mins}:${secs}`;
+
+  // Seviye Etiketi
+  let level = "E / Baraj Altı";
+  if (ydsScore >= 90) level = "A (90-100)";
+  else if (ydsScore >= 80) level = "B (80-89)";
+  else if (ydsScore >= 70) level = "C (70-79)";
+  else if (ydsScore >= 60) level = "D (60-69)";
+  else if (ydsScore >= 50) level = "E (50-59)";
+  document.getElementById("ydsLevelTag").textContent = `YDS Seviyeniz: ${level}`;
+
+  // Tablo Oluşturma
+  const tableBody = document.getElementById("typeAnalysisBody");
+  tableBody.innerHTML = "";
+
+  let slowestType = "";
+  let maxAvgTime = 0;
+
+  for (const [type, stat] of Object.entries(typeStats)) {
+    const avgSec = Math.round(stat.totalTime / stat.total);
+    if (avgSec > maxAvgTime) {
+      maxAvgTime = avgSec;
+      slowestType = type;
+    }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${type}</strong></td>
+      <td>${stat.total}</td>
+      <td>${stat.correct} / ${stat.total}</td>
+      <td>${avgSec} sn / soru</td>
+    `;
+    tableBody.appendChild(tr);
   }
-  loadState();
+
+  // AI Tavsiye Metni
+  document.getElementById("analysisAdviceText").innerHTML = `
+    En çok zaman harcadığınız soru tipi: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye). <br><br>
+    YDS'de zaman yönetimi kritik önem taşır. Soru başına ortalama 1.5 - 2 dakikayı aşmamaya özen göstermelisiniz. ${ydsScore < 70 ? 'Özellikle yanlış yaptığınız soru gruplarının çözüm taktiklerini tekrar incelemeniz ve günlük okuma pratiği yapmanız önerilir.' : 'Tebrikler! Yüksek başarı oranına sahipsiniz, hızınızı ve soru taktiklerinizi koruyun.'}
+  `;
 }
 
-function startTimer() {
-  if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    secondsPassed++;
-    const m = Math.floor(secondsPassed / 60);
-    const s = secondsPassed % 60;
-    document.getElementById("timer").innerText = `⏱️ ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  }, 1000);
+function resetApp() {
+  clearInterval(timerInterval);
+  currentQuestions = [];
+  currentIndex = 0;
+  userAnswers = {};
+  timeSpentPerQuestion = {};
+  questionStartTime = 0;
+  document.getElementById("uploadScreen").classList.remove("hidden");
+  document.getElementById("startConfirmScreen").classList.add("hidden");
+  document.getElementById("quizScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("pdfFileInput").value = "";
+  document.getElementById("pdfStatus").textContent = "Henüz dosya seçilmedi";
 }

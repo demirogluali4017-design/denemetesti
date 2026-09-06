@@ -3,173 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YDS Fransızca - Çalışma Portalı</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; height: 100vh; overflow: hidden; }
-
-    .screen { display: none; height: 100vh; width: 100%; }
-    .screen.active { display: flex; }
-
-    /* 1. ANA MENÜ */
-    #main-menu { flex-direction: column; justify-content: center; align-items: center; background: linear-gradient(135deg, #1a252f, #2c3e50); color: white; text-align: center; padding: 20px; }
-    #main-menu h1 { font-size: 32px; margin-bottom: 10px; }
-    #main-menu p { font-size: 16px; color: #bdc3c7; margin-bottom: 40px; }
-    .menu-cards { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-    .menu-card { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); padding: 30px; border-radius: 12px; width: 260px; cursor: pointer; transition: 0.3s; }
-    .menu-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.2); }
-    .menu-card h3 { font-size: 20px; margin-bottom: 10px; }
-    .menu-card p { font-size: 13px; color: #ecf0f1; margin-bottom: 0; }
-
-    /* 2. SORU YÜKLEME PANELİ */
-    #upload-screen { flex-direction: column; justify-content: center; align-items: center; padding: 20px; background: #eaedd0; }
-    .form-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-    .form-container h2 { margin-bottom: 20px; color: #1a252f; font-size: 22px; }
-    .form-group { margin-bottom: 15px; display: flex; flex-direction: column; text-align: left; }
-    .form-group label { font-size: 14px; font-weight: 600; margin-bottom: 5px; color: #495057; }
-    .form-group input, .form-group textarea { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-family: inherit; font-size: 14px; }
-    .form-group textarea { height: 160px; font-family: monospace; font-size: 12px; }
-    .btn-group { display: flex; gap: 10px; margin-top: 20px; }
-    .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; transition: 0.2s; text-align: center; }
-    .btn-primary { background: #28a745; color: white; }
-    .btn-primary:hover { background: #218838; }
-    .btn-secondary { background: #6c757d; color: white; }
-    .btn-secondary:hover { background: #5a6268; }
-
-    /* 3. TEST ÇÖZME EKRANI */
-    #quiz-screen { flex-direction: column; }
-    #top-bar { background: #1a252f; color: #fff; padding: 12px 25px; display: flex; justify-content: space-between; align-items: center; }
-    .filter-group { display: flex; gap: 10px; align-items: center; }
-    .filter-group select { padding: 6px 12px; border-radius: 6px; border: none; font-weight: bold; background: #fff; color: #333; }
-    #workspace { display: flex; flex: 1; overflow: hidden; }
-
-    #article-panel { flex: 1; padding: 30px; border-right: 2px solid #e0e0e0; overflow-y: auto; background-color: #ffffff; }
-    #article-panel h2 { color: #007bff; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
-    #article-panel h1 { font-size: 22px; margin-bottom: 20px; color: #1a252f; }
-    .text-box { line-height: 1.8; font-size: 16px; color: #2c3e50; text-align: justify; }
-
-    #question-panel { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; justify-content: space-between; }
-    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 600; color: #6c757d; }
-    .timer-badge { background: #e9ecef; padding: 6px 14px; border-radius: 20px; font-family: monospace; font-size: 16px; color: #333; }
-
-    /* SORU NAVİGASYON BARI */
-    .question-nav-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; background: #e9ecef; padding: 10px; border-radius: 8px; }
-    .q-nav-btn { width: 36px; height: 36px; border-radius: 6px; border: 1px solid #ced4da; background: white; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; }
-    .q-nav-btn.active { border: 2px solid #007bff; font-weight: 800; transform: scale(1.05); }
-    .q-nav-btn.answered { background: #28a745; color: white; border-color: #218838; }
-
-    .question-card { background: #fff; border-radius: 10px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    
-    /* Öncül Metni & Roma Rakamı Destek Yapısı */
-    .question-preface { font-size: 15px; line-height: 1.6; color: #495057; background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #007bff; margin-bottom: 15px; white-space: pre-line; }
-    .question-title { font-weight: 700; margin-bottom: 18px; color: #1a252f; font-size: 16px; line-height: 1.5; }
-
-    .options-group { display: flex; flex-direction: column; gap: 12px; }
-    .option-btn { text-align: left; padding: 14px 18px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; font-size: 15px; }
-    .option-btn.correct { background-color: #d4edda !important; border-color: #c3e6cb !important; color: #155724 !important; font-weight: bold; }
-    .option-btn.wrong { background-color: #f8d7da !important; border-color: #f5c6cb !important; color: #721c24 !important; }
-
-    .explanation-box { margin-top: 20px; padding: 15px; background: #e9ecef; border-left: 4px solid #17a2b8; border-radius: 6px; font-size: 14px; display: none; }
-    .action-bar { margin-top: 20px; display: flex; justify-content: space-between; }
-    .nav-btn { background-color: #007bff; color: white; border: none; padding: 12px 20px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    .nav-btn:disabled { background-color: #ccc; cursor: not-allowed; }
-  </style>
+  <title>AI YDS PDF Test & Analiz Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
-  <!-- 1. EKRAN: ANA MENÜ -->
-  <div id="main-menu" class="screen active">
-    <h1>🇫🇷 YDS Fransızca Portalı</h1>
-    <p>Çalışmak istediğiniz modülü seçin</p>
-    <div class="menu-cards">
-      <div class="menu-card" onclick="showScreen('quiz-screen')">
-        <h3>📝 Soru Çöz</h3>
-        <p>Kayıtlı metinleri konu ve tarihe göre filtreleyip çözün.</p>
-      </div>
-      <div class="menu-card" onclick="showScreen('upload-screen')">
-        <h3>➕ Soru Yükle</h3>
-        <p>Yapay zekadan aldığınız soruları sisteme entegre edin.</p>
-      </div>
-    </div>
-  </div>
+  <header>
+    <div class="logo">📘 AI YDS Deneme & Analiz Portalı</div>
+  </header>
 
-  <!-- 2. EKRAN: SORU YÜKLEME PANELİ -->
-  <div id="upload-screen" class="screen">
-    <div class="form-container">
-      <h2>Sisteme Yeni Soru Entegre Et</h2>
-      <div class="form-group">
-        <label>Konu Başlığı:</label>
-        <input type="text" id="upload-topic" placeholder="Örn: Tarih, Bilim, Fransız İhtilali">
-      </div>
-      <div class="form-group">
-        <label>Tarih:</label>
-        <input type="date" id="upload-date">
-      </div>
-      <div class="form-group">
-        <label>Yapay Zeka Metni (JSON Formatı):</label>
-        <textarea id="upload-json" placeholder="ChatGPT veya Gemini'ın ürettiği soruları buraya yapıştırın..."></textarea>
-      </div>
-      <div class="btn-group">
-        <button class="btn btn-secondary" onclick="showScreen('main-menu')">🏠 Ana Menüye Dön</button>
-        <button class="btn btn-primary" onclick="handleSaveSet()">💾 Kaydet ve Entegre Et</button>
-      </div>
-    </div>
-  </div>
+  <main class="container">
 
-  <!-- 3. EKRAN: TEST ÇÖZME PANELİ -->
-  <div id="quiz-screen" class="screen">
-    <div id="top-bar">
-      <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="showScreen('main-menu')">🏠 Menü</button>
-      <div class="filter-group">
-        <label for="set-select">📚 Set Seçin:</label>
-        <select id="set-select" onchange="changeSet(this.value)"></select>
-      </div>
-    </div>
-
-    <div id="workspace">
-      <!-- SOL TARAF: MAKALE PANELİ -->
-      <div id="article-panel">
-        <h2 id="article-number">Makale 1 / 1</h2>
-        <h1 id="article-title">Yükleniyor...</h1>
-        <div id="article-text" class="text-box"></div>
+    <!-- 1. YÜKLEME EKRANI -->
+    <section id="uploadScreen" class="card">
+      <h2>YDS PDF Belgenizi Yükleyin</h2>
+      <p>YDS deneme sınavı PDF'inizi yükleyin. Paragraflar, Cloze Testler, soru tipleri ve süre analizleri otomatik hazırlanacaktır.</p>
+      
+      <div class="upload-box">
+        <input type="file" id="pdfFileInput" accept="application/pdf" onchange="handlePDFUpload(event)" hidden>
+        <label for="pdfFileInput" class="btn-primary">📁 YDS PDF Dosyası Seç</label>
+        <p id="pdfStatus" class="status-text">Henüz dosya seçilmedi</p>
       </div>
 
-      <!-- SAĞ TARAF: SORU PANELİ -->
-      <div id="question-panel">
-        <div>
-          <div class="progress-header">
-            <span id="question-number">Soru 1 / 4</span>
-            <span id="timer" class="timer-badge">⏱️ 00:00</span>
-            <span id="score-tracker">Doğru: 0 | Yanlış: 0</span>
+      <!-- EĞLENCELİ YÜKLEME EKRANI -->
+      <div id="loadingBox" class="loading hidden">
+        <p class="loading-title">YDS Soruları Yapay Zeka Tarafından Çıkarılıyor...</p>
+
+        <!-- Koşan Adam & İlerleme Alanı -->
+        <div class="progress-wrapper">
+          <div id="runner" class="runner">🏃💨</div>
+          <div class="progress-bar-container">
+            <div id="progressBar" class="progress-bar"></div>
           </div>
-
-          <!-- SORU HIZLI GEZİNTİ (NAVİGASYON) BAR -->
-          <div id="question-nav-grid" class="question-nav-grid"></div>
-
-          <div class="question-card">
-            <!-- Roma rakamları / öncül alanı (Varsa görünür) -->
-            <div id="question-preface" class="question-preface" style="display: none;"></div>
-            
-            <!-- Soru Kökü Metni -->
-            <div id="question-title" class="question-title"></div>
-            
-            <!-- Şıklar -->
-            <div id="options-group" class="options-group"></div>
-            
-            <!-- Açıklama -->
-            <div id="explanation-box" class="explanation-box"></div>
-          </div>
+          <span id="progressPercent" class="percent-text">%0</span>
         </div>
 
-        <div class="action-bar">
-          <button id="prev-btn" class="nav-btn" onclick="prevQuestion()">⬅️ Önceki Soru</button>
-          <button id="next-btn" class="nav-btn" onclick="nextQuestion()">Sonraki Soru ➔</button>
+        <p id="funnyQuote" class="funny-quote">Çöp adam YDS paragraflarını taşıyor...</p>
+      </div>
+    </section>
+
+    <!-- 2. BAŞLANGIÇ ONAY EKRANI -->
+    <section id="startConfirmScreen" class="card hidden">
+      <h2>YDS Denemeniz Hazır! 🚀</h2>
+      <p id="readyQuestionsCount">Toplam 0 soru tespit edildi.</p>
+      <p>Başla butonuna bastığınızda sınav kronometresi çalışmaya başlayacaktır.</p>
+      <button onclick="startQuiz()" class="btn-primary">Sınava Başla</button>
+    </section>
+
+    <!-- 3. TEST ÇÖZME EKRANI -->
+    <section id="quizScreen" class="card hidden">
+      <div class="quiz-header">
+        <span id="questionCounter">Soru: 1/80</span>
+        <div class="timer-badge">⏱️ <span id="timerText">00:00</span></div>
+        <button onclick="resetApp()" class="btn-secondary btn-sm">Ayrıl</button>
+      </div>
+
+      <!-- Paragraf veya Cloze Test Metni Paneli -->
+      <div id="passageBox" class="passage-box hidden">
+        <h4>📖 Okuma Parçası / Cloze Test Metni:</h4>
+        <p id="passageText"></p>
+      </div>
+
+      <div class="question-container">
+        <div class="question-meta">
+          <span id="questionTypeTag" class="type-badge">Soru Tipi</span>
+          <button id="clearAnswerBtn" onclick="clearAnswer()" class="btn-clear hidden">🗑️ Seçimi Temizle (Boş Bırak)</button>
+        </div>
+        <p id="questionText" class="question-box"></p>
+        <div id="optionsContainer" class="options-grid"></div>
+      </div>
+
+      <div class="actions">
+        <button id="prevBtn" onclick="prevQuestion()" class="btn-secondary">⬅️ Önceki</button>
+        <button id="nextBtn" onclick="nextQuestion()" class="btn-primary">Sonraki ➔</button>
+        <button id="finishBtn" onclick="finishQuiz()" class="btn-success hidden">Sınavı Bitir 🏁</button>
+      </div>
+    </section>
+
+    <!-- 4. SONUÇ VE DETAYLI ANALİZ EKRANI -->
+    <section id="resultScreen" class="card hidden">
+      <h2>🎉 YDS Sınav Sonuç Analizi</h2>
+      
+      <!-- YDS Puanı Kartı -->
+      <div class="yds-score-card">
+        <p>Tahmini YDS Puanınız</p>
+        <h1 id="ydsScoreText">0.0</h1>
+        <span id="ydsLevelTag" class="level-tag">Seviye: -</span>
+      </div>
+
+      <div class="score-summary">
+        <div class="score-card">
+          <span id="scoreText">0 / 0</span>
+          <p>Doğru / Toplam</p>
+        </div>
+        <div class="score-card">
+          <span id="emptyText">0</span>
+          <p>Boş Soru</p>
+        </div>
+        <div class="score-card">
+          <span id="totalTimeText">00:00</span>
+          <p>Toplam Süre</p>
         </div>
       </div>
-    </div>
-  </div>
 
-  <script src="questionsData.js"></script>
+      <!-- Soru Tipi ve Süre Analiz Tablosu -->
+      <div class="analysis-box">
+        <h3>⏱️ Soru Tipi Bazlı Süre ve Başarı Analizi</h3>
+        <table class="analysis-table">
+          <thead>
+            <tr>
+              <th>Soru Tipi</th>
+              <th>Toplam</th>
+              <th>Doğru / Yanlış / Boş</th>
+              <th>Ort. Süre / Soru</th>
+            </tr>
+          </thead>
+          <tbody id="typeAnalysisBody"></tbody>
+        </table>
+      </div>
+
+      <!-- AI Tavsiye Kutusu -->
+      <div class="analysis-box advice-box">
+        <h3>💡 Yapay Zeka YDS Strateji Tavsiyesi</h3>
+        <p id="analysisAdviceText">Analiz çıkarılıyor...</p>
+      </div>
+
+      <button onclick="resetApp()" class="btn-primary" style="margin-top: 1.5rem;">Yeni Deneme Yükle</button>
+    </section>
+
+  </main>
+
   <script src="app.js"></script>
 </body>
 </html>
