@@ -22,13 +22,13 @@ TÜM soruları eksiksiz analiz et.
 ÇOK ÖNEMLİ - "type" KATEGORİZASYON KURALI:
 "type" alanına ASLA "Multiple Choice", "Test", "Soru" gibi genel kelimeler yazma! 
 Sadece ve sadece aşağıdaki resmi YDS soru tiplerinden birini seçerek yaz:
-- "Kelime Bilgisi" (Vocabulary / Phrasal Verbs)
-- "Gramer / Dilbilgisi" (Tense, Preposition, Conjunction vb.)
+- "Kelime Bilgisi"
+- "Gramer / Dilbilgisi"
 - "Cloze Test"
 - "Cümle Tamamlama"
 - "İngilizce - Türkçe Çeviri"
 - "Türkçe - İngilizce Çeviri"
-- "Paragraf / Okuma Anlama" (Reading Comprehension)
+- "Paragraf / Okuma Anlama"
 - "Diyalog Tamamlama"
 - "Eş Anlamlı Cümle (Restatement)"
 - "Paragraf Tamamlama"
