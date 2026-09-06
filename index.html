@@ -23,7 +23,7 @@
       <button id="startParseBtn" class="btn-success hidden" onclick="startAnalysis()">Sınavı Analiz Et ve Hazırla</button>
     </section>
 
-    <!-- 2. BAŞLAMADAN ÖNCE (SINAV ÖNETİKET & ONAY) EKRANI -->
+    <!-- 2. BAŞLAMADAN ÖNCE (ONAY) EKRANI -->
     <section id="preStartScreen" class="card hidden">
       <h2>📋 Sınav Hazır! Başlamadan Önce</h2>
       <div class="info-box">
@@ -31,7 +31,7 @@
         <p><strong>Toplam Soru Sayısı:</strong> <span id="totalQuestionsTag">0</span> Soru</p>
         <p><strong>Önerilen Süre:</strong> <span id="recommendedTimeTag">0</span> Dakika</p>
       </div>
-      <p style="font-size: 0.9rem; color: #64748b;">Aşağıdaki buton ile süreli sınav simülasyonunu başlatabilirsiniz. Soru navigasyon paneli ile sorular arasında serbestçe gezinebilirsiniz.</p>
+      <p style="font-size: 0.9rem; color: #64748b;">Aşağıdaki buton ile süreli sınav simülasyonunu başlatabilirsiniz.</p>
       <button class="btn-success" onclick="startQuiz()">🚀 Sınavı Başlat</button>
     </section>
 
@@ -45,14 +45,8 @@
           <div class="gel c1 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
           <div class="gel c2 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
           <div class="gel c3 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c4 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c5 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c6 r1"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c7 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c8 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
-          <div class="gel c9 r2"><div class="hex-brick h1"></div><div class="hex-brick h2"></div><div class="hex-brick h3"></div></div>
         </div>
-        <p id="loadingText" class="loading-text">PDF Okunuyor ve Yapay Zeka Kategorilerine Ayırıyor...</p>
+        <p id="loadingText" class="loading-text">PDF Okunuyor...</p>
       </div>
     </section>
 
@@ -63,7 +57,6 @@
         <span id="timerBadge">⏱️ 00:00</span>
       </div>
 
-      <!-- SORU NAVİGASYON PANENLİ -->
       <div class="nav-panel-wrapper">
         <p style="font-size:0.8rem; font-weight:600; margin-bottom:0.4rem; color:#64748b;">Soru Navigasyonu:</p>
         <div id="questionNavGrid" class="nav-grid"></div>
@@ -88,9 +81,9 @@
       </div>
     </section>
 
-    <!-- 5. SONUÇ VE DETAYLI ANALİZ EKRANI -->
+    <!-- 5. SONUÇ EKRANI -->
     <section id="resultScreen" class="card hidden">
-      <h2>🎉 YDS Sınav Sonuç Analizi</h2>
+      <h2>🎉 Sınav Sonuç Analizi</h2>
       
       <div class="yds-score-card">
         <p id="resultExamLangText" style="color:#93c5fd; font-size:0.9rem; font-weight:600; margin-bottom:0.2rem;">Sınav Dili: Fransızca</p>
@@ -100,38 +93,39 @@
       </div>
 
       <div class="score-summary">
-        <div class="score-card">
-          <span id="scoreText">0 / 0</span>
-          <p>Doğru / Toplam</p>
-        </div>
-        <div class="score-card">
-          <span id="emptyText">0</span>
-          <p>Boş Soru</p>
-        </div>
-        <div class="score-card">
-          <span id="totalTimeText">00:00</span>
-          <p>Toplam Süre</p>
-        </div>
+        <div class="score-card"><span id="scoreText">0 / 0</span><p>Doğru / Toplam</p></div>
+        <div class="score-card"><span id="emptyText">0</span><p>Boş Soru</p></div>
+        <div class="score-card"><span id="totalTimeText">00:00</span><p>Toplam Süre</p></div>
       </div>
 
       <div class="analysis-box">
-        <h3>📊 Soru Tipi Bazlı Başarı ve Süre Grafiği</h3>
+        <h3>📊 Soru Tipi Bazlı Başarı Grafiği</h3>
         <div id="typeAnalysisChart" class="type-chart-container"></div>
       </div>
 
-      <div class="analysis-box advice-box">
-        <h3>💡 Yapay Zeka Strateji Tavsiyesi</h3>
-        <p id="analysisAdviceText">Analiz çıkarılıyor...</p>
+      <!-- YANLIŞLAR SAYFASINA GEÇİŞ BUTONU -->
+      <div style="display: flex; gap: 1rem; flex-direction: column;">
+        <button id="goToWrongAnalysisBtn" class="btn-ai" onclick="analyzeAndGoToWrongScreen()">🧠 Yanlış Soruları Yapay Zeka ile Analiz Et (Yeni Sayfa)</button>
+        <button onclick="resetApp()" class="btn-secondary">Yeni Deneme Yükle</button>
       </div>
-
-      <!-- YANLIŞ SORULARI ANALİZ ET BUTONU VE SONUÇ ALANI -->
-      <div class="wrong-analysis-container">
-        <button id="analyzeWrongBtn" class="btn-ai" onclick="analyzeWrongQuestionsWithAI()">🧠 Yanlış Soruları Yapay Zeka ile Analiz Et</button>
-        <div id="wrongAnalysisResult" class="wrong-analysis-box hidden"></div>
-      </div>
-
-      <button onclick="resetApp()" class="btn-primary" style="margin-top: 1rem;">Yeni Deneme Yükle</button>
     </section>
+
+    <!-- 6. YENİ SAYFA: YANLIŞ SORULAR & YAPAY ZEKA ÇÖZÜM/TAKTİK EKRANI -->
+    <section id="wrongAnalysisScreen" class="card hidden">
+      <div class="wrong-screen-header">
+        <h2>🧠 Yanlış Soru Çözümleri & Taktikler</h2>
+        <p style="color: #64748b; font-size: 0.9rem;">Yapay zeka hatalarınızı analiz etti, doğru cevabın gerekçesini ve soru tipine özel çözüm taktiğini çıkardı.</p>
+      </div>
+
+      <!-- YANLIŞ SORULAR LİSTESİ -->
+      <div id="wrongQuestionsList" class="wrong-questions-container"></div>
+
+      <div class="wrong-screen-footer">
+        <button onclick="backToResultScreen()" class="btn-secondary">⬅️ Sonuç Ekranına Dön</button>
+        <button onclick="resetApp()" class="btn-primary">🔄 Yeni Sınav Yükle</button>
+      </div>
+    </section>
+
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
