@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI YDS PDF Test & Analiz Platformu</title>
+  <title>AI YDS Deneme & Analiz Platformu</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -15,7 +15,6 @@
 
   <main class="container">
 
-    <!-- 1. YÜKLEME EKRANI -->
     <section id="uploadScreen" class="card">
       <h2>YDS PDF Belgenizi Yükleyin</h2>
       <p>YDS deneme sınavı PDF'inizi yükleyin. Paragraflar, Cloze Testler, soru tipleri ve süre analizleri otomatik hazırlanacaktır.</p>
@@ -26,24 +25,24 @@
         <p id="pdfStatus" class="status-text">Henüz dosya seçilmedi</p>
       </div>
 
-      <!-- EĞLENCELİ YÜKLEME EKRANI -->
       <div id="loadingBox" class="loading hidden">
         <p class="loading-title">YDS Soruları Yapay Zeka Tarafından Çıkarılıyor...</p>
 
-        <!-- Koşan Adam & İlerleme Alanı -->
-        <div class="progress-wrapper">
-          <div id="runner" class="runner">🏃💨</div>
-          <div class="progress-bar-container">
-            <div id="progressBar" class="progress-bar"></div>
+        <div class="orwellian-container">
+          <div class="orwellian-loader">
+            <div class="eye">
+              <div class="pupil"></div>
+              <div class="eyelid"></div>
+            </div>
+            <div class="spotlight"></div>
+            <div class="text">ANALİZ EDİLİYOR...</div>
+            <div class="scan-lines"></div>
+            <div class="tv-effect"></div>
           </div>
-          <span id="progressPercent" class="percent-text">%0</span>
         </div>
-
-        <p id="funnyQuote" class="funny-quote">Çöp adam YDS paragraflarını taşıyor...</p>
       </div>
     </section>
 
-    <!-- 2. BAŞLANGIÇ ONAY EKRANI -->
     <section id="startConfirmScreen" class="card hidden">
       <h2>YDS Denemeniz Hazır! 🚀</h2>
       <p id="readyQuestionsCount">Toplam 0 soru tespit edildi.</p>
@@ -51,7 +50,6 @@
       <button onclick="startQuiz()" class="btn-primary">Sınava Başla</button>
     </section>
 
-    <!-- 3. TEST ÇÖZME EKRANI -->
     <section id="quizScreen" class="card hidden">
       <div class="quiz-header">
         <span id="questionCounter">Soru: 1/80</span>
@@ -59,7 +57,16 @@
         <button onclick="resetApp()" class="btn-secondary btn-sm">Ayrıl</button>
       </div>
 
-      <!-- Paragraf veya Cloze Test Metni Paneli -->
+      <div class="question-nav-container">
+        <div class="nav-title">📌 Soru Haritası (İstediğiniz Soruya Atlayın):</div>
+        <div id="questionNavGrid" class="nav-grid"></div>
+      </div>
+
+      <div id="instructionBox" class="instruction-box hidden">
+        <span class="instruction-icon">ℹ️</span>
+        <span id="instructionText"></span>
+      </div>
+
       <div id="passageBox" class="passage-box hidden">
         <h4>📖 Okuma Parçası / Cloze Test Metni:</h4>
         <p id="passageText"></p>
@@ -81,11 +88,9 @@
       </div>
     </section>
 
-    <!-- 4. SONUÇ VE DETAYLI ANALİZ EKRANI -->
     <section id="resultScreen" class="card hidden">
       <h2>🎉 YDS Sınav Sonuç Analizi</h2>
       
-      <!-- YDS Puanı Kartı -->
       <div class="yds-score-card">
         <p>Tahmini YDS Puanınız</p>
         <h1 id="ydsScoreText">0.0</h1>
@@ -107,7 +112,6 @@
         </div>
       </div>
 
-      <!-- Soru Tipi ve Süre Analiz Tablosu -->
       <div class="analysis-box">
         <h3>⏱️ Soru Tipi Bazlı Süre ve Başarı Analizi</h3>
         <table class="analysis-table">
@@ -123,7 +127,6 @@
         </table>
       </div>
 
-      <!-- AI Tavsiye Kutusu -->
       <div class="analysis-box advice-box">
         <h3>💡 Yapay Zeka YDS Strateji Tavsiyesi</h3>
         <p id="analysisAdviceText">Analiz çıkarılıyor...</p>
