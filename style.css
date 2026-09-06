@@ -114,13 +114,32 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
   font-size: 0.95rem;
 }
 
-.topic-tag {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #2563eb;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+/* Paragraf / Cloze Test Kutusu */
+.passage-box {
+  background: #f1f5f9;
+  border-left: 4px solid #0284c7;
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  max-height: 250px;
+  overflow-y: auto;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #334155;
+}
+.passage-box h4 { color: #0369a1; margin-bottom: 0.5rem; }
+
+/* Soru Tipi Rozeti */
+.type-badge {
+  display: inline-block;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
   margin-bottom: 0.5rem;
+  text-transform: uppercase;
 }
 
 .question-box {
@@ -151,6 +170,18 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 .option-btn.selected { background: #eff6ff; border-color: #2563eb; color: #1d4ed8; font-weight: 600; }
 
 .actions { margin-top: 1.5rem; display: flex; justify-content: space-between; gap: 1rem; }
+
+/* YDS Puan Kartı */
+.yds-score-card {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.yds-score-card h1 { font-size: 3rem; margin: 0.5rem 0; }
+.level-tag { background: rgba(255,255,255,0.2); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.9rem; }
 
 .score-summary {
   display: flex;
@@ -184,14 +215,16 @@ p { color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
 
 .analysis-box h3 { color: #0f172a; margin-bottom: 1rem; font-size: 1.1rem; }
 
-.category-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #e2e8f0;
-  font-size: 0.95rem;
+/* Analiz Tablosu */
+.analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
 }
-
-.category-item:last-child { border-bottom: none; }
-.bad-score { color: #dc2626; font-weight: 600; }
-.good-score { color: #16a34a; font-weight: 600; }
+.analysis-table th, .analysis-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+.analysis-table th { background: #f1f5f9; color: #475569; }
