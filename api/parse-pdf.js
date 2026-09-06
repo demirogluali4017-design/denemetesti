@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY Vercel üzerinde tanımlanmamış.' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY tanımlanmamış.' });
   }
 
   try {
@@ -18,26 +18,27 @@ export default async function handler(req, res) {
     }
 
     const prompt = `
-Aşağıdaki metindeki çoktan seçmeli soruları analiz et ve SADECE saf bir JSON dizisi (array) formatında döndür.
+Aşağıdaki metindeki TÜM çoktan seçmeli soruları eksiksiz şekilde analiz et ve SADECE saf bir JSON dizisi formatında döndür.
 
-JSON Formatı Örneği:
+JSON Formatı:
 [
   {
-    "question": "Soru metni buraya",
+    "topic": "Soru Grubu veya Konu Adı (Örn: Matematik - Problemler, Paragrafta Anlam vb.)",
+    "question": "Soru metni",
     "options": ["A şıkkı metni", "B şıkkı metni", "C şıkkı metni", "D şıkkı metni"],
     "correct": "A"
   }
 ]
 
-Önemli Kurallar:
-- Yanıtına HİÇBİR açıklama veya markdown kesmesi (\`\`\`json gibi) EKLEME. Sadece ham JSON string döndür.
-- "correct" değeri A, B, C veya D harflerinden biri olmalıdır.
+Kurallar:
+- Hiçbir soruyu atlama, belgedeki tüm soruları çıkar.
+- Yanıtına Markdown kaplaması (\`\`\`json) ekleme, sadece saf JSON döndür.
+- "topic" alanına sorunun ait olduğu genel konu/ders başlığını yaz.
 
-Analiz Edilecek Metin:
-${pdfText.substring(0, 8000)}
+Metin:
+${pdfText}
     `;
 
-    // Güncel Model Adı: gemini-3.6-flash
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
@@ -62,6 +63,6 @@ ${pdfText.substring(0, 8000)}
 
   } catch (error) {
     console.error("Sunucu Hatası:", error);
-    return res.status(500).json({ error: 'Soru ayrıştırma sırasında sunucu hatası oluştu.' });
+    return res.status(500).json({ error: 'Soru ayrıştırma hatası oluştu.' });
   }
 }
