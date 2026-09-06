@@ -88,12 +88,52 @@ function trackTimeForCurrentQuestion() {
   questionStartTime = Date.now();
 }
 
+function renderQuestionNav() {
+  const navGrid = document.getElementById("questionNavGrid");
+  navGrid.innerHTML = "";
+
+  currentQuestions.forEach((_, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "nav-btn";
+    
+    if (idx === currentIndex) {
+      btn.classList.add("active");
+    }
+    if (userAnswers[idx]) {
+      btn.classList.add("answered");
+    }
+
+    btn.textContent = idx + 1;
+    btn.onclick = () => jumpToQuestion(idx);
+    navGrid.appendChild(btn);
+  });
+}
+
+function jumpToQuestion(index) {
+  if (index >= 0 && index < currentQuestions.length) {
+    trackTimeForCurrentQuestion();
+    currentIndex = index;
+    displayQuestion();
+  }
+}
+
 function displayQuestion() {
   const q = currentQuestions[currentIndex];
   document.getElementById("questionCounter").textContent = `Soru: ${currentIndex + 1} / ${currentQuestions.length}`;
   document.getElementById("questionTypeTag").textContent = q.type || "YDS Genel";
   document.getElementById("questionText").textContent = `${currentIndex + 1}. ${q.question}`;
 
+  // Yönerge / PDF Talimat Metni Kontrolü
+  const instructionBox = document.getElementById("instructionBox");
+  const instructionText = document.getElementById("instructionText");
+  if (q.instruction && q.instruction.trim().length > 3) {
+    instructionBox.classList.remove("hidden");
+    instructionText.textContent = q.instruction;
+  } else {
+    instructionBox.classList.add("hidden");
+  }
+
+  // Seçimi Temizle Butonu Mantığı
   const clearBtn = document.getElementById("clearAnswerBtn");
   if (userAnswers[currentIndex]) {
     clearBtn.classList.remove("hidden");
@@ -137,6 +177,9 @@ function displayQuestion() {
     document.getElementById("nextBtn").classList.remove("hidden");
     document.getElementById("finishBtn").classList.add("hidden");
   }
+
+  // Navigasyon Gridini Güncelle
+  renderQuestionNav();
 }
 
 function selectOption(letter) {
