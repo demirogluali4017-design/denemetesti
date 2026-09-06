@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI PDF Test & Analiz Platformu</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="logo">📄 AI PDF Test & Analiz</div>
+  </header>
+
+  <main class="container">
+
+    <!-- 1. PDF YÜKLEME EKRANI -->
+    <section id="uploadScreen" class="card">
+      <h2>PDF Test Belgenizi Yükleyin</h2>
+      <p>Soru içeren PDF belgenizi seçin. Yapay Zeka sorularınızı saniyeler içinde çözülebilir teste dönüştürecektir.</p>
+      
+      <div class="upload-box">
+        <input type="file" id="pdfFileInput" accept="application/pdf" onchange="handlePDFUpload(event)" hidden>
+        <label for="pdfFileInput" class="btn-primary">📁 PDF Dosyası Seç</label>
+        <p id="pdfStatus" class="status-text">Henüz dosya seçilmedi</p>
+      </div>
+
+      <div id="loadingBox" class="loading hidden">
+        <div class="spinner"></div>
+        <p>PDF metni okunuyor ve Gemini AI soruları hazırlıyor, lütfen bekleyin...</p>
+      </div>
+    </section>
+
+    <!-- 2. TEST ÇÖZME EKRANI -->
+    <section id="quizScreen" class="card hidden">
+      <div class="quiz-header">
+        <span id="questionCounter">Soru: 1/1</span>
+        <button onclick="resetApp()" class="btn-secondary btn-sm">İptal Et / Yeni PDF</button>
+      </div>
+
+      <div class="question-container">
+        <p id="questionText" class="question-box"></p>
+        <div id="optionsContainer" class="options-grid"></div>
+      </div>
+
+      <div id="feedbackBox" class="feedback hidden"></div>
+
+      <div class="actions">
+        <button id="nextBtn" onclick="nextQuestion()" class="btn-primary hidden">Sonraki Soru ➔</button>
+      </div>
+    </section>
+
+    <!-- 3. SONUÇ VE AI ANALİZ EKRANI -->
+    <section id="resultScreen" class="card hidden">
+      <h2>🎉 Test Tamamlandı!</h2>
+      
+      <div class="score-summary">
+        <div class="score-card">
+          <span id="scoreText">0 / 0</span>
+          <p>Doğru Sayısı</p>
+        </div>
+        <div class="score-card">
+          <span id="percentageText">%0</span>
+          <p>Başarı Oranı</p>
+        </div>
+      </div>
+
+      <div class="analysis-box">
+        <h3>🤖 Yapay Zeka Performans Analizi</h3>
+        <p id="analysisText">Analiz hazırlanıyor...</p>
+      </div>
+
+      <button onclick="resetApp()" class="btn-primary" style="margin-top: 1.5rem;">Yeni Test Yükle</button>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
