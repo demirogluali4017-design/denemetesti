@@ -65,6 +65,7 @@ function startQuiz() {
   
   currentIndex = 0;
   secondsPassed = 0;
+  questionStartTime = Date.now();
   startTimer();
   displayQuestion();
 }
@@ -88,12 +89,17 @@ function trackTimeForCurrentQuestion() {
 }
 
 function displayQuestion() {
-  trackTimeForCurrentQuestion();
-
   const q = currentQuestions[currentIndex];
   document.getElementById("questionCounter").textContent = `Soru: ${currentIndex + 1} / ${currentQuestions.length}`;
   document.getElementById("questionTypeTag").textContent = q.type || "YDS Genel";
   document.getElementById("questionText").textContent = `${currentIndex + 1}. ${q.question}`;
+
+  const clearBtn = document.getElementById("clearAnswerBtn");
+  if (userAnswers[currentIndex]) {
+    clearBtn.classList.remove("hidden");
+  } else {
+    clearBtn.classList.add("hidden");
+  }
 
   // Paragraf veya Cloze Test Metni Kontrolü
   const passageBox = document.getElementById("passageBox");
@@ -138,8 +144,14 @@ function selectOption(letter) {
   displayQuestion();
 }
 
+function clearAnswer() {
+  delete userAnswers[currentIndex];
+  displayQuestion();
+}
+
 function prevQuestion() {
   if (currentIndex > 0) {
+    trackTimeForCurrentQuestion();
     currentIndex--;
     displayQuestion();
   }
@@ -147,6 +159,7 @@ function prevQuestion() {
 
 function nextQuestion() {
   if (currentIndex < currentQuestions.length - 1) {
+    trackTimeForCurrentQuestion();
     currentIndex++;
     displayQuestion();
   }
@@ -160,37 +173,43 @@ function finishQuiz() {
   document.getElementById("resultScreen").classList.remove("hidden");
 
   let correctCount = 0;
+  let emptyCount = 0;
   const typeStats = {}; 
 
   currentQuestions.forEach((q, idx) => {
     const type = q.type || "Genel Gramer";
     const timeSpent = timeSpentPerQuestion[idx] || 0;
+    const userAnswer = userAnswers[idx];
 
     if (!typeStats[type]) {
-      typeStats[type] = { total: 0, correct: 0, totalTime: 0 };
+      typeStats[type] = { total: 0, correct: 0, wrong: 0, empty: 0, totalTime: 0 };
     }
 
     typeStats[type].total++;
     typeStats[type].totalTime += timeSpent;
 
-    if (userAnswers[idx] === q.correct) {
+    if (!userAnswer) {
+      emptyCount++;
+      typeStats[type].empty++;
+    } else if (userAnswer === q.correct) {
       correctCount++;
       typeStats[type].correct++;
+    } else {
+      typeStats[type].wrong++;
     }
   });
 
   const totalCount = currentQuestions.length;
-  // YDS Puan Hesaplama
   const ydsScore = (correctCount * (100 / totalCount)).toFixed(1);
   
   document.getElementById("ydsScoreText").textContent = ydsScore;
   document.getElementById("scoreText").textContent = `${correctCount} / ${totalCount}`;
+  document.getElementById("emptyText").textContent = emptyCount;
   
   const mins = String(Math.floor(secondsPassed / 60)).padStart(2, '0');
   const secs = String(secondsPassed % 60).padStart(2, '0');
   document.getElementById("totalTimeText").textContent = `${mins}:${secs}`;
 
-  // Seviye Etiketi
   let level = "E / Baraj Altı";
   if (ydsScore >= 90) level = "A (90-100)";
   else if (ydsScore >= 80) level = "B (80-89)";
@@ -199,7 +218,6 @@ function finishQuiz() {
   else if (ydsScore >= 50) level = "E (50-59)";
   document.getElementById("ydsLevelTag").textContent = `YDS Seviyeniz: ${level}`;
 
-  // Tablo Oluşturma
   const tableBody = document.getElementById("typeAnalysisBody");
   tableBody.innerHTML = "";
 
@@ -217,13 +235,12 @@ function finishQuiz() {
     tr.innerHTML = `
       <td><strong>${type}</strong></td>
       <td>${stat.total}</td>
-      <td>${stat.correct} / ${stat.total}</td>
+      <td>${stat.correct} D / ${stat.wrong} Y / ${stat.empty} B</td>
       <td>${avgSec} sn / soru</td>
     `;
     tableBody.appendChild(tr);
   }
 
-  // AI Tavsiye Metni
   document.getElementById("analysisAdviceText").innerHTML = `
     En çok zaman harcadığınız soru tipi: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye). <br><br>
     YDS'de zaman yönetimi kritik önem taşır. Soru başına ortalama 1.5 - 2 dakikayı aşmamaya özen göstermelisiniz. ${ydsScore < 70 ? 'Özellikle yanlış yaptığınız soru gruplarının çözüm taktiklerini tekrar incelemeniz ve günlük okuma pratiği yapmanız önerilir.' : 'Tebrikler! Yüksek başarı oranına sahipsiniz, hızınızı ve soru taktiklerinizi koruyun.'}
