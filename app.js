@@ -2,7 +2,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 let currentQuestions = [];
 let currentIndex = 0;
-let userAnswers = {}; // { 0: 'A', 1: 'C' }
+let userAnswers = {}; 
+let timeSpentPerQuestion = {}; 
+let questionStartTime = 0;
+
 let timerInterval = null;
 let secondsPassed = 0;
 
@@ -16,12 +19,6 @@ async function handlePDFUpload(event) {
   try {
     const extractedText = await extractTextFromPDF(file);
 
-    if (!extractedText.trim()) {
-      alert("PDF dosyasından metin okunamadı.");
-      document.getElementById("loadingBox").classList.add("hidden");
-      return;
-    }
-
     const response = await fetch('/api/parse-pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -34,9 +31,11 @@ async function handlePDFUpload(event) {
     if (data.questions && data.questions.length > 0) {
       currentQuestions = data.questions;
       userAnswers = {};
+      timeSpentPerQuestion = {};
+      
       document.getElementById("uploadScreen").classList.add("hidden");
       document.getElementById("startConfirmScreen").classList.remove("hidden");
-      document.getElementById("readyQuestionsCount").textContent = `Toplam ${currentQuestions.length} soru başarıyla hazırlandı.`;
+      document.getElementById("readyQuestionsCount").textContent = `Toplam ${currentQuestions.length} YDS sorusu başarıyla hazırlandı.`;
     } else {
       alert("Hata: " + (data.error || "Soru çıkarılamadı."));
     }
@@ -44,7 +43,7 @@ async function handlePDFUpload(event) {
   } catch (error) {
     console.error(error);
     document.getElementById("loadingBox").classList.add("hidden");
-    alert("PDF işlenirken sunucu hatası oluştu.");
+    alert("PDF işlenirken bir sunucu hatası oluştu.");
   }
 }
 
@@ -52,13 +51,11 @@ async function extractTextFromPDF(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   let fullText = "";
-
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
     fullText += textContent.items.map(item => item.str).join(" ") + "\n";
   }
-
   return fullText;
 }
 
@@ -82,12 +79,35 @@ function startTimer() {
   }, 1000);
 }
 
+function trackTimeForCurrentQuestion() {
+  if (questionStartTime > 0) {
+    const elapsed = Math.round((Date.now() - questionStartTime) / 1000);
+    timeSpentPerQuestion[currentIndex] = (timeSpentPerQuestion[currentIndex] || 0) + elapsed;
+  }
+  questionStartTime = Date.now();
+}
+
 function displayQuestion() {
+  trackTimeForCurrentQuestion();
+
   const q = currentQuestions[currentIndex];
   document.getElementById("questionCounter").textContent = `Soru: ${currentIndex + 1} / ${currentQuestions.length}`;
-  document.getElementById("questionTopic").textContent = q.topic || "Genel Sorular";
+  document.getElementById("questionTypeTag").textContent = q.type || "YDS Genel";
   document.getElementById("questionText").textContent = `${currentIndex + 1}. ${q.question}`;
 
+  // Paragraf veya Cloze Test Metni Kontrolü
+  const passageBox = document.getElementById("passageBox");
+  const passageTextElement = document.getElementById("passageText");
+
+  if (q.passage && q.passage !== "null" && q.passage.trim().length > 10) {
+    passageBox.classList.remove("hidden");
+    passageTextElement.textContent = q.passage;
+  } else {
+    passageBox.classList.add("hidden");
+    passageTextElement.textContent = "";
+  }
+
+  // Şıkların Hazırlanması
   const container = document.getElementById("optionsContainer");
   container.innerHTML = "";
 
@@ -103,9 +123,7 @@ function displayQuestion() {
     container.appendChild(btn);
   });
 
-  // Buton Yönetimi
   document.getElementById("prevBtn").style.visibility = currentIndex === 0 ? "hidden" : "visible";
-  
   if (currentIndex === currentQuestions.length - 1) {
     document.getElementById("nextBtn").classList.add("hidden");
     document.getElementById("finishBtn").classList.remove("hidden");
@@ -135,66 +153,81 @@ function nextQuestion() {
 }
 
 function finishQuiz() {
+  trackTimeForCurrentQuestion();
   clearInterval(timerInterval);
+
   document.getElementById("quizScreen").classList.add("hidden");
   document.getElementById("resultScreen").classList.remove("hidden");
 
   let correctCount = 0;
-  const topicStats = {};
+  const typeStats = {}; 
 
   currentQuestions.forEach((q, idx) => {
-    const topic = q.topic || "Genel Sorular";
-    if (!topicStats[topic]) {
-      topicStats[topic] = { total: 0, correct: 0, wrong: 0 };
+    const type = q.type || "Genel Gramer";
+    const timeSpent = timeSpentPerQuestion[idx] || 0;
+
+    if (!typeStats[type]) {
+      typeStats[type] = { total: 0, correct: 0, totalTime: 0 };
     }
-    topicStats[topic].total++;
+
+    typeStats[type].total++;
+    typeStats[type].totalTime += timeSpent;
 
     if (userAnswers[idx] === q.correct) {
       correctCount++;
-      topicStats[topic].correct++;
-    } else {
-      topicStats[topic].wrong++;
+      typeStats[type].correct++;
     }
   });
 
   const totalCount = currentQuestions.length;
-  const percentage = Math.round((correctCount / totalCount) * 100);
-
+  // YDS Puan Hesaplama
+  const ydsScore = (correctCount * (100 / totalCount)).toFixed(1);
+  
+  document.getElementById("ydsScoreText").textContent = ydsScore;
+  document.getElementById("scoreText").textContent = `${correctCount} / ${totalCount}`;
+  
   const mins = String(Math.floor(secondsPassed / 60)).padStart(2, '0');
   const secs = String(secondsPassed % 60).padStart(2, '0');
-
-  document.getElementById("scoreText").textContent = `${correctCount} / ${totalCount}`;
-  document.getElementById("percentageText").textContent = `%${percentage}`;
   document.getElementById("totalTimeText").textContent = `${mins}:${secs}`;
 
-  // Konu Analizi Listeleme
-  const categoryContainer = document.getElementById("categoryAnalysisContainer");
-  categoryContainer.innerHTML = "";
-  
-  let weakTopics = [];
+  // Seviye Etiketi
+  let level = "E / Baraj Altı";
+  if (ydsScore >= 90) level = "A (90-100)";
+  else if (ydsScore >= 80) level = "B (80-89)";
+  else if (ydsScore >= 70) level = "C (70-79)";
+  else if (ydsScore >= 60) level = "D (60-69)";
+  else if (ydsScore >= 50) level = "E (50-59)";
+  document.getElementById("ydsLevelTag").textContent = `YDS Seviyeniz: ${level}`;
 
-  for (const [topic, stat] of Object.entries(topicStats)) {
-    const item = document.createElement("div");
-    item.className = "category-item";
-    const statusClass = stat.wrong > 0 ? "bad-score" : "good-score";
-    item.innerHTML = `
-      <span><strong>${topic}</strong> (${stat.total} Soru)</span>
-      <span class="${statusClass}">${stat.correct} Doğru / ${stat.wrong} Yanlış</span>
-    `;
-    categoryContainer.appendChild(item);
+  // Tablo Oluşturma
+  const tableBody = document.getElementById("typeAnalysisBody");
+  tableBody.innerHTML = "";
 
-    if (stat.wrong > 0) {
-      weakTopics.push(topic);
+  let slowestType = "";
+  let maxAvgTime = 0;
+
+  for (const [type, stat] of Object.entries(typeStats)) {
+    const avgSec = Math.round(stat.totalTime / stat.total);
+    if (avgSec > maxAvgTime) {
+      maxAvgTime = avgSec;
+      slowestType = type;
     }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${type}</strong></td>
+      <td>${stat.total}</td>
+      <td>${stat.correct} / ${stat.total}</td>
+      <td>${avgSec} sn / soru</td>
+    `;
+    tableBody.appendChild(tr);
   }
 
-  // Tavsiye Metni Oluşturma
-  const adviceText = document.getElementById("analysisAdviceText");
-  if (weakTopics.length > 0) {
-    adviceText.innerHTML = `Test sonuçlarınıza göre özellikle <strong>${weakTopics.join(", ")}</strong> konu gruplarında hatalar yaptınız. Bu konulara ait konu özetlerini tekrar gözden geçirmeniz ve bu başlıklarda bolca soru pratiği yapmanız önerilir.`;
-  } else {
-    adviceText.innerHTML = "Tebrikler! Tüm konularda mükemmel bir başarı gösterdiniz. Bilgilerinizi taze tutmak için düzenli aralıklarla genel denemeler çözmeye devam edebilirsiniz.";
-  }
+  // AI Tavsiye Metni
+  document.getElementById("analysisAdviceText").innerHTML = `
+    En çok zaman harcadığınız soru tipi: <strong>${slowestType || 'Soru Tipi'}</strong> (Soru başına ort. ${maxAvgTime} saniye). <br><br>
+    YDS'de zaman yönetimi kritik önem taşır. Soru başına ortalama 1.5 - 2 dakikayı aşmamaya özen göstermelisiniz. ${ydsScore < 70 ? 'Özellikle yanlış yaptığınız soru gruplarının çözüm taktiklerini tekrar incelemeniz ve günlük okuma pratiği yapmanız önerilir.' : 'Tebrikler! Yüksek başarı oranına sahipsiniz, hızınızı ve soru taktiklerinizi koruyun.'}
+  `;
 }
 
 function resetApp() {
@@ -202,6 +235,8 @@ function resetApp() {
   currentQuestions = [];
   currentIndex = 0;
   userAnswers = {};
+  timeSpentPerQuestion = {};
+  questionStartTime = 0;
   document.getElementById("uploadScreen").classList.remove("hidden");
   document.getElementById("startConfirmScreen").classList.add("hidden");
   document.getElementById("quizScreen").classList.add("hidden");
