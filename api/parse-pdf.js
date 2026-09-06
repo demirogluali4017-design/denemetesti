@@ -19,10 +19,20 @@ export default async function handler(req, res) {
 Aşağıdaki metin bir YDS (Yabancı Dil Bilgisi Seviye Tespit Sınavı) belgesidir. 
 TÜM soruları eksiksiz analiz et.
 
-Aşağıdaki kurallara kesinlikle uy:
-1. "instruction": Sorunun üzerinde PDF'te verilen soru talimatını/yönergesini yaz (Örn: "1-6. sorularda boş bırakılan yerlere uygun düşen sözcük veya ifadeyi bulunuz."). Eğer özel bir yönerge yoksa soru tipine uygun genel bir Türkçe yönerge yaz.
-2. Paragraf ve Cloze Test metinleri bir grup soruya aitse, o metni gruba ait HER BİR sorunun "passage" alanına eksiksiz kopyala. Bağımsız sorularda "passage" alanını null yap.
-3. "correct" alanına sorunun doğru şık harfini (A, B, C, D veya E) ekle.
+ÇOK ÖNEMLİ - "type" KATEGORİZASYON KURALI:
+"type" alanına ASLA "Multiple Choice", "Test", "Soru" gibi genel kelimeler yazma! 
+Sadece ve sadece aşağıdaki resmi YDS soru tiplerinden birini seçerek yaz:
+- "Kelime Bilgisi" (Vocabulary / Phrasal Verbs)
+- "Gramer / Dilbilgisi" (Tense, Preposition, Conjunction vb.)
+- "Cloze Test"
+- "Cümle Tamamlama"
+- "İngilizce - Türkçe Çeviri"
+- "Türkçe - İngilizce Çeviri"
+- "Paragraf / Okuma Anlama" (Reading Comprehension)
+- "Diyalog Tamamlama"
+- "Eş Anlamlı Cümle (Restatement)"
+- "Paragraf Tamamlama"
+- "Anlam Bütünlüğünü Bozan Cümle"
 
 Metin:
 ${pdfText}
